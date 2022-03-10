@@ -1,10 +1,10 @@
-package org.processmining.newpackageivy.connections;
+package org.processmining.celonisintegration.connections;
 
+import org.processmining.celonisintegration.models.YourFirstInput;
+import org.processmining.celonisintegration.models.YourOutput;
+import org.processmining.celonisintegration.models.YourSecondInput;
+import org.processmining.celonisintegration.parameters.YourParameters;
 import org.processmining.framework.connections.impl.AbstractConnection;
-import org.processmining.newpackageivy.models.YourFirstInput;
-import org.processmining.newpackageivy.models.YourOutput;
-import org.processmining.newpackageivy.models.YourSecondInput;
-import org.processmining.newpackageivy.parameters.YourParameters;
 
 public class YourConnection extends AbstractConnection {
 

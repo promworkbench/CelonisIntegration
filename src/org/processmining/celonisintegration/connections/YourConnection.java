@@ -3,7 +3,7 @@ package org.processmining.celonisintegration.connections;
 import org.processmining.celonisintegration.models.YourFirstInput;
 import org.processmining.celonisintegration.models.YourOutput;
 import org.processmining.celonisintegration.models.YourSecondInput;
-import org.processmining.celonisintegration.parameters.YourParameters;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.framework.connections.impl.AbstractConnection;
 
 public class YourConnection extends AbstractConnection {
@@ -26,7 +26,7 @@ public class YourConnection extends AbstractConnection {
 	/**
 	 * Private copy of parameters.
 	 */
-	private YourParameters parameters;
+	private UploadEventLogParameter parameters;
 
 	/**
 	 * Create a connection.
@@ -35,19 +35,19 @@ public class YourConnection extends AbstractConnection {
 	 * @param output Output.
 	 * @param parameters Parameters.
 	 */
-	public YourConnection(YourFirstInput input1, YourSecondInput input2, YourOutput output, YourParameters parameters) {
+	public YourConnection(YourFirstInput input1, YourSecondInput input2, YourOutput output, UploadEventLogParameter parameters) {
 		super("Your Connection");
 		put(FIRSTINPUT, input1);
 		put(SECONDINPUT, input2);
 		put(OUTPUT, output);
-		this.parameters = new YourParameters(parameters);
+		this.parameters = new UploadEventLogParameter(parameters);
 	}
 
 	/**
 	 * 
 	 * @return The parameters stored in the connection.
 	 */
-	public YourParameters getParameters() {
+	public UploadEventLogParameter getParameters() {
 		return parameters;
 	}
 }

@@ -41,7 +41,7 @@ public class UploadEventLogAlgo {
     	CSVUtils.createCaseCSV(log, caseCSV);
     	
     	
-    	Celonis celonis = new Celonis(url, token);    	
+    	DataIntegration celonis = new DataIntegration(url, token);    	
         String dataPoolId = celonis.createDataPool(tableName + "_DATAPOOL");
     	celonis.uploadCSV(dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", EventLogUtils.TIMESTAMPKEY, 100000);    
     	celonis.uploadCSV(dataPoolId, caseCSV.getPath(), tableName + "_CASE", EventLogUtils.TIMESTAMPKEY, 100000);

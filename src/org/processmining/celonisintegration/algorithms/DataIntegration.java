@@ -33,12 +33,12 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 
-public class Celonis {
+public class DataIntegration {
 	private String url;
 	private String apiToken;
 	
 	
-	public Celonis (String url, String apiToken) {
+	public DataIntegration (String url, String apiToken) {
 		this.url = url;
 		this.apiToken = apiToken;
 	}

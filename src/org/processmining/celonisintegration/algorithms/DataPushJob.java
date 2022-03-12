@@ -9,7 +9,7 @@ public class DataPushJob implements Serializable{
 	private int fallbackVarcharLength;	
 	private fileType fileType;
 	private String[] keys;
-	private TableTransport tableSchema;
+	private TableSchema tableSchema;
 	private String targetName;
 	private type type;
 	private upsertStrategy upsertStrategy;	
@@ -60,10 +60,10 @@ public class DataPushJob implements Serializable{
 	public void setKeys(String[] keys) {
 		this.keys = keys;
 	}
-	public TableTransport getTableSchema() {
+	public TableSchema getTableSchema() {
 		return tableSchema;
 	}
-	public void setTableSchema(TableTransport tableSchema) {
+	public void setTableSchema(TableSchema tableSchema) {
 		this.tableSchema = tableSchema;
 	}
 	public String getTargetName() {

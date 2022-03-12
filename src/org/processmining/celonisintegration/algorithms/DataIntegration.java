@@ -43,47 +43,13 @@ public class DataIntegration {
 		this.apiToken = apiToken;
 	}
 	
-	public void getDataPools() {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);	
-        
-        HttpEntity<String> jobRequest = new HttpEntity<String>(headers);       
-        restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);        
-	}
-	public void getDataModels(String dataPoolId) {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools/" + dataPoolId + "/data-models";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);	
-        
-        HttpEntity<String> jobRequest = new HttpEntity<String>(headers);       
-        restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);        
-	}
-	public void getAnalyses() {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/process-mining/api/analysis";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);	
-        
-        HttpEntity<String> jobRequest = new HttpEntity<String>(headers);       
-        restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);        
-	}
-	public void getAnalysesDataModel(String anaId) {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + anaId + "/data_model";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);	
-        
-        HttpEntity<String> jobRequest = new HttpEntity<String>(headers);       
-        restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);        
-	}
 	
+	/**
+	 * Create a new analysis in the workspace
+	 * @param workspaceId
+	 * @param name
+	 * @return
+	 */
 	public String createAnalysis(String workspaceId, String name) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/process-mining/api/analysis";
@@ -104,6 +70,12 @@ public class DataIntegration {
         return body.getString("id");
 	}
 	
+	/**
+	 * Create a new workspace in process analytics
+	 * @param dataModelId
+	 * @param name
+	 * @return
+	 */
 	public String createWorkspace (String dataModelId, String name) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/process-mining/api/processes";
@@ -124,6 +96,16 @@ public class DataIntegration {
         
 	}
 	
+	/**
+	 * Configure the data model
+	 * @param dataModelId
+	 * @param dataPoolId
+	 * @param actTable
+	 * @param caseTable
+	 * @param caseIdColumn
+	 * @param actColumn
+	 * @param timestampColumn
+	 */
 	public void addProcessConfiguration (String dataModelId, String dataPoolId, String actTable, String caseTable, String caseIdColumn, 
 			String actColumn, String timestampColumn) {
 		String actTableId = this.getTableByName(actTable, dataModelId, dataPoolId);
@@ -147,6 +129,12 @@ public class DataIntegration {
         
 	}
 	
+	/**
+	 * Reload the data model
+	 * @param dataModelId
+	 * @param dataPoolId
+	 * @throws InterruptedException
+	 */
 	public void reloadDataModel (String dataModelId, String dataPoolId) throws InterruptedException {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/reload", dataPoolId);
@@ -177,6 +165,13 @@ public class DataIntegration {
         }
 	}
 	
+	/**
+	 * Get a table ID via table name
+	 * @param tableName
+	 * @param dataModelId
+	 * @param dataPoolId
+	 * @return
+	 */
 	public String getTableByName(String tableName, String dataModelId, String dataPoolId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables", dataPoolId);
@@ -202,6 +197,15 @@ public class DataIntegration {
         
 	}
 	
+	/**
+	 * Set foreign keys between 2 tables with 2 given columns
+	 * @param table1
+	 * @param column1
+	 * @param table2
+	 * @param column2
+	 * @param dataModelId
+	 * @param dataPoolId
+	 */
 	public void addForeignKeys(String table1, String column1, String table2, String column2, String dataModelId, String dataPoolId) {
 		String table1Id = this.getTableByName(table1, dataModelId, dataPoolId);
 		String table2Id = this.getTableByName(table2, dataModelId, dataPoolId);
@@ -228,6 +232,12 @@ public class DataIntegration {
         
  	}
 	
+	/**
+	 * Add a table to a given data pool via table name
+	 * @param tableName
+	 * @param dataPoolId
+	 * @param dataModelId
+	 */
 	public void addTableFromPool(String tableName, String dataPoolId, String dataModelId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables", dataPoolId);
@@ -249,6 +259,11 @@ public class DataIntegration {
         restTemplate.postForEntity(targetUrl, jobRequest, Object.class);        
 	}
 	
+	/**
+	 * Create a new data pool in Celonis
+	 * @param name
+	 * @return
+	 */
 	public String createDataPool(String name) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/integration/api/pools";
@@ -267,6 +282,12 @@ public class DataIntegration {
         return body.getString("id");
 	}
 	
+	/**
+	 * Create a new data model in Celonis
+	 * @param modelName
+	 * @param dataPoolId
+	 * @return
+	 */
 	public String createDataModel(String modelName, String dataPoolId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models", dataPoolId);
@@ -286,10 +307,22 @@ public class DataIntegration {
         return body.getString("id");
 	}
 	
-	public void uploadCSV(String dataPoolId, String fileLocation, String tableName, String timestampColumn, int chunkSize) throws CsvValidationException, IOException, InterruptedException, ExecutionException {
-//		System.out.println("Creating table schema");
-//		System.out.println("##################");
-		TableTransport tableSchema = getTableConfig(fileLocation, timestampColumn, tableName);
+	/**
+	 * Upload the CSV file to Celonis
+	 * @param dataPoolId
+	 * @param fileLocation
+	 * @param tableName
+	 * @param timestampColumn
+	 * @param chunkSize
+	 * @throws CsvValidationException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public void uploadCSV(String dataPoolId, String fileLocation, String tableName, 
+						String timestampColumn, int chunkSize) 
+								throws CsvValidationException, IOException, InterruptedException, ExecutionException {
+		TableSchema tableSchema = getTableConfig(fileLocation, timestampColumn, tableName);
 		String jobId = this.createPushJob(dataPoolId, tableName, tableSchema);
 		this.uploadCsvChunk(chunkSize, dataPoolId, jobId, fileLocation);
 		this.executeJob(jobId, dataPoolId);	
@@ -307,6 +340,12 @@ public class DataIntegration {
 
 	}
 	
+	/**
+	 * Get the current status of the execution of the data job. 
+	 * @param dataPoolId
+	 * @param jobId
+	 * @return
+	 */
 	private String getStatus(String dataPoolId, String jobId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/v1/data-push/%s/jobs/" + jobId, dataPoolId);
@@ -319,7 +358,14 @@ public class DataIntegration {
 		return body.getString("status");
 	}
 	
-	private String createPushJob(String dataPoolId, String tableName, TableTransport tableSchema) {		
+	/**
+	 * Register a data push job
+	 * @param dataPoolId
+	 * @param tableName
+	 * @param tableSchema
+	 * @return
+	 */
+	private String createPushJob(String dataPoolId, String tableName, TableSchema tableSchema) {		
         DataPushJob job = new DataPushJob();       
         CSVParsingOptions csvOption = new CSVParsingOptions();
         job.setDataPoolId(dataPoolId);
@@ -344,10 +390,21 @@ public class DataIntegration {
         return job.getId();
 	}
 	
+	/**
+	 * Configure the data job to upload the CSV file in chunks
+	 * @param chunkSize
+	 * @param dataPoolId
+	 * @param jobId
+	 * @param fileLocation
+	 * @throws CsvValidationException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
 	private void uploadCsvChunk(int chunkSize, String dataPoolId, String jobId, String fileLocation) throws CsvValidationException, IOException, InterruptedException, ExecutionException {
 		System.out.println("Start devide chunks");
 		long startDivide = System.currentTimeMillis();
-		List<String> chunksLocation = devideChunks(fileLocation, chunkSize);
+		List<String> chunksLocation = divideChunks(fileLocation, chunkSize);
 		System.out.println("Done devide chunks");
 		long endDivide = System.currentTimeMillis();
 		System.out.println((endDivide - startDivide)/60000);
@@ -371,8 +428,7 @@ public class DataIntegration {
 		}
 		executorService.shutdown();
 		long endPush = System.currentTimeMillis();
-		System.out.println("End"
-				+ " push chunks");
+		System.out.println("End push chunks");
 		System.out.println((endPush - startPush)/60000);
 		
 		
@@ -382,7 +438,15 @@ public class DataIntegration {
 		}
 	}
 	
-	private List<String> devideChunks(String fileLocation, int chunkSize) throws CsvValidationException, IOException {
+	/**
+	 * Divide a file to a list of chunks with the given chunk size
+	 * @param fileLocation
+	 * @param chunkSize
+	 * @return
+	 * @throws CsvValidationException
+	 * @throws IOException
+	 */
+	private List<String> divideChunks(String fileLocation, int chunkSize) throws CsvValidationException, IOException {
 		List<String> chunksLocation = new ArrayList<String>();
 		
 		CSVReader reader = new CSVReader(new FileReader(fileLocation));
@@ -424,6 +488,12 @@ public class DataIntegration {
 		return chunksLocation;
 	}
 	
+	/**
+	 * Configure the data job to upload a file to the given data pool
+	 * @param dataPoolId
+	 * @param jobId
+	 * @param fileLocation
+	 */
 	private void uploadFile(String dataPoolId, String jobId, String fileLocation) {
 		String pushUrl = String.format(this.url + "/integration/api/v1/data-push/%s/jobs/" + jobId + "/chunks/upserted", dataPoolId);
         LinkedMultiValueMap<String, Object> requestMap = new LinkedMultiValueMap<String, Object>();       
@@ -439,6 +509,11 @@ public class DataIntegration {
         restTemplate.postForEntity(pushUrl, requestEntity, Object.class);
 	}
 	
+	/** 
+	 * Execute the registered data job in a given data pool
+	 * @param jobId
+	 * @param dataPoolId
+	 */
 	private void executeJob(String jobId, String dataPoolId) {
 		String sealUrl = String.format(this.url + "/integration/api/v1/data-push/%s/jobs/" + jobId, dataPoolId);
 		
@@ -452,10 +527,19 @@ public class DataIntegration {
         Object re = restTemplate.postForEntity(sealUrl, sealRequest, Object.class);    
 	}
 	
-	private static TableTransport getTableConfig(String fileLocation, String timestampColumn, String tableName) throws CsvValidationException, IOException {
+	/**
+	 * Get a table schema based on the given file, name of the timestamp column
+	 * @param fileLocation
+	 * @param timestampColumn
+	 * @param tableName
+	 * @return table schema
+	 * @throws CsvValidationException
+	 * @throws IOException
+	 */
+	private static TableSchema getTableConfig(String fileLocation, String timestampColumn, String tableName) throws CsvValidationException, IOException {
 		CSVReader reader = new CSVReader(new FileReader(fileLocation));
 	    String [] tableHeader = reader.readNext();
-		TableTransport tableSchema = new TableTransport();
+		TableSchema tableSchema = new TableSchema();
 		ColumnTransport[] tableCol = new ColumnTransport[tableHeader.length];
 		
 		for (int i = 0; i < tableHeader.length; i++) {			

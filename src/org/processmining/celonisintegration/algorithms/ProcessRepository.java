@@ -27,6 +27,10 @@ public class ProcessRepository {
 		this.apiToken = apiToken;
 	}
 	
+	/**
+	 * Get all the category name and process model name in the process repository
+	 * @return
+	 */
 	public HashMap<String, List<String>> getProcessRepoInfo() {
 		HashMap<String, List<String>> res = new HashMap<String, List<String>>();
 		String targetUrl = this.url + "process-repository/api/v1/categories";		
@@ -52,6 +56,11 @@ public class ProcessRepository {
         return res;
 	}
 			
+	/**
+	 * Get the category ID via category name
+	 * @param cateName
+	 * @return
+	 */
 	public String getCategory(String cateName) {
 		String result = "";
 		String targetUrl = this.url + "process-repository/api/v1/categories";		
@@ -72,6 +81,12 @@ public class ProcessRepository {
         return result;        
 	}
 	
+	/**
+	 * Get the process model ID via process model name
+	 * @param cateName
+	 * @param pmName
+	 * @return
+	 */
 	public String getProcessModel(String cateName, String pmName) {
 		String result = "";		
 		String cateId = getCategory(cateName);
@@ -93,6 +108,13 @@ public class ProcessRepository {
         return result;        
 	}
 	
+	/**
+	 * Get the BPMN model 
+	 * @param cateName
+	 * @param pmName
+	 * @return
+	 * @throws IOException
+	 */
 	public String getBpmnFileLocation(String cateName, String pmName) throws IOException {
 		String categoryId = getCategory(cateName);
 		String processModelId = getProcessModel(cateName, pmName);

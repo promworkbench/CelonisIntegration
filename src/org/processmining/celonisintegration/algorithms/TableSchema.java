@@ -1,6 +1,6 @@
 package org.processmining.celonisintegration.algorithms;
 
-public class TableTransport {
+public class TableSchema {
 	private ColumnTransport[] columns;
 	private String tableName;
 	

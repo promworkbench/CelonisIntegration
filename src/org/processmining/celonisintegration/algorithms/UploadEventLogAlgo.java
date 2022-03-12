@@ -10,17 +10,12 @@ public class UploadEventLogAlgo {
 	
 
 	/**
-	 * The method that implements your algorithm.
 	 * 
-	 * Note that this method only uses the boolean which is stored in the parameters.
-	 * Nevertheless, it could have used the integer and/or the String as well.
 	 * 
-	 * @param context The context where to run in.
-	 * @param input1 The first input.
-	 * @param input2 The second input.
-	 * @param parameters The parameters to use.
-	 * @return The output.
-	 * @throws Exception 
+	 * @param context
+	 * @param log
+	 * @param parameters
+	 * @throws Exception
 	 */
 	public void apply(PluginContext context, XLog log, UploadEventLogParameter parameters) throws Exception {
 		/**

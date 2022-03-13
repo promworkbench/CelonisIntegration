@@ -4,6 +4,8 @@ package org.processmining.celonisintegration.algorithms;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,15 +17,14 @@ import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
+import org.processmining.log.csv.CSVFile;
+import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
 
 import com.opencsv.CSVWriter;
 
 public class CSVUtils {
-	static void createActCSV (XLog log, File output) throws Exception {
-		
-		
-		Map<String, Set<String>> keyDict = new HashMap<String, Set<String>>();
-		
+	static void createActCSV (XLog log, File output) throws Exception {	
+		Map<String, Set<String>> keyDict = new HashMap<String, Set<String>>();		
 		Set<String> keyEvent = new HashSet<String>();
 		Set<String> keyTrace = new HashSet<String>();
 		
@@ -105,6 +106,22 @@ public class CSVUtils {
 			}
 		}		
 		writer.close();
+	}
+	
+	static void writeToCsv(String content, File output) throws IOException {
+		FileWriter outputFile = new FileWriter(output);
+		CSVWriter writer = new CSVWriter(outputFile);	
+		String[] content1 = content.split("\\n");
+		for (int i = 0; i<content1.length; i++) {
+			String [] row = content1[i].split(",");
+			writer.writeNext(row);
+		}
+		writer.close();
+	}
+	
+	static CSVFile  importFromStream(final Path input, final String filename,
+			final long fileSizeInBytes) throws Exception {		
+		return new CSVFileReferenceUnivocityImpl(input);
 	}
 }
 

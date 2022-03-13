@@ -11,7 +11,7 @@ import org.processmining.framework.plugin.PluginContext;
 import org.processmining.framework.plugin.annotations.Plugin;
 
 
-public class UploadEventLog extends UploadEventLogAlgo {
+public class UploadEventLogPlugin extends UploadEventLogAlgo {
 
 	/**
 	 * The plug-in variant that runs in a UI context and uses a dialog to get the parameters.

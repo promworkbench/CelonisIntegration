@@ -11,7 +11,7 @@ import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 
 
-public class PullBpmn extends PullBpmnAlgo {
+public class PullBpmnPlugin extends PullBpmnAlgo {
 
 	/**
 	 * The plug-in variant that runs in a UI context and uses a dialog to get the parameters.

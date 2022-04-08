@@ -2,7 +2,10 @@ package org.processmining.celonisintegration.plugins;
 
 import org.deckfour.xes.model.XLog;
 import org.processmining.celonisintegration.algorithms.UploadEventLogAlgo;
+import org.processmining.celonisintegration.dialogs.UploadEventLogActColumnDialog;
+import org.processmining.celonisintegration.dialogs.UploadEventLogCaseColumnDialog;
 import org.processmining.celonisintegration.dialogs.UploadEventLogDialog;
+import org.processmining.celonisintegration.dialogs.UploadEventLogTimeColumnDialog;
 import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -28,7 +31,11 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 		// Get the default parameters.
 	    UploadEventLogParameter parameters = new UploadEventLogParameter();
 	    // Get a dialog for this parameters.
-	    UploadEventLogDialog dialog = new UploadEventLogDialog(context, parameters);
+	    UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters);
+	    UploadEventLogActColumnDialog dialog2 = new UploadEventLogActColumnDialog(context, parameters, log);
+	    UploadEventLogCaseColumnDialog dialog3 = new UploadEventLogCaseColumnDialog(context, parameters, log);
+	    UploadEventLogTimeColumnDialog dialog4 = new UploadEventLogTimeColumnDialog(context, parameters, log);
+	    
 	    runConnections(context, log, parameters);	    
 	    return log;
 	}	

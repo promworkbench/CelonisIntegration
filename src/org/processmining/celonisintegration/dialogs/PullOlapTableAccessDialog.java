@@ -9,12 +9,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.processmining.celonisintegration.algorithms.CacheUtils;
-import org.processmining.celonisintegration.parameters.DownloadEventLogParameter;
+import org.processmining.celonisintegration.parameters.PullOlapTableParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 
 import com.opencsv.exceptions.CsvValidationException;
 
-public class DownloadEventLogDialog extends JPanel {
+public class PullOlapTableAccessDialog extends JPanel {
 
 	/**
 	 * 
@@ -26,14 +26,14 @@ public class DownloadEventLogDialog extends JPanel {
 	 * @throws IOException 
 	 * @throws CsvValidationException 
 	 */
-	public DownloadEventLogDialog(UIPluginContext context, final DownloadEventLogParameter parameters) throws CsvValidationException, IOException {
-		String nameCache = "Celonis-PQLAnalysis";
+	public PullOlapTableAccessDialog(UIPluginContext context, final PullOlapTableParameter parameters) throws CsvValidationException, IOException {
+		String nameCache = "Process-Analytics";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
 		
 		
         JTextField urlField = new JTextField(accessInfo[0]);
         JTextField tokenField = new JTextField(accessInfo[1]);
-        JTextField anaName = new JTextField();
+        
 
         JPanel myPanel = new JPanel();
         myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));        
@@ -41,11 +41,10 @@ public class DownloadEventLogDialog extends JPanel {
         myPanel.add(urlField);        
         myPanel.add(new JLabel("API Token:"));
         myPanel.add(tokenField);
-        myPanel.add(new JLabel("Analysis name:"));
-        myPanel.add(anaName);
+        
 
         int result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Please Enter Based URL, API Token and your Analysis name", JOptionPane.OK_CANCEL_OPTION);
+                 "Please Enter Based URL, API Token", JOptionPane.OK_CANCEL_OPTION);
         // change your result label
         context.getFutureResult(0).setLabel("Celonis access");
         if (!urlField.getText().equals(accessInfo[0]) || ! tokenField.getText().equals(accessInfo[1])) {
@@ -55,7 +54,6 @@ public class DownloadEventLogDialog extends JPanel {
         
         parameters.setUrl(urlField.getText());
         parameters.setToken(tokenField.getText());
-        parameters.setAnalysisName(anaName.getText());
         
 	}
 }

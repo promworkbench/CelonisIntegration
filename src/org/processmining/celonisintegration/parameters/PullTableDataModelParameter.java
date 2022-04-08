@@ -2,70 +2,44 @@ package org.processmining.celonisintegration.parameters;
 
 import org.processmining.basicutils.parameters.impl.PluginParametersImpl;
 
-public class UploadEventLogParameter extends PluginParametersImpl {
+public class PullTableDataModelParameter extends PluginParametersImpl {
 
 	private String url;
 	private String token;
+	private String dataPool;
+	private String dataModel;
 	private String tableName;
-	private String casePrefix;
-	private String actCol;
-	private String caseCol;
-	private String timeCol;
 	
-	public String getActCol() {
-		return actCol;
-	}
-
-	public void setActCol(String actCol) {
-		this.actCol = actCol;
-	}
-
-	public String getCaseCol() {
-		return caseCol;
-	}
-
-	public void setCaseCol(String caseCol) {
-		this.caseCol = caseCol;
-	}
-
-	public String getTimeCol() {
-		return timeCol;
-	}
-
-	public void setTimeCol(String timeCol) {
-		this.timeCol = timeCol;
-	}
-
-	public String getCasePrefix() {
-		return casePrefix;
-	}
-
-	public void setCasePrefix(String casePrefix) {
-		this.casePrefix = casePrefix;
-	}
-
-	public UploadEventLogParameter() {
+	public PullTableDataModelParameter() {
 		super();
 	}
 
-	public UploadEventLogParameter(UploadEventLogParameter parameters) {
+	public PullTableDataModelParameter(PullTableDataModelParameter parameters) {
 		super(parameters);
 		setUrl(parameters.getUrl());
 		setToken(parameters.getToken());
+		setDataPool(parameters.getDataPool());
+		setDataModel(parameters.getDataModel());
 		setTableName(parameters.getTableName());
 	}
 	
 	public boolean equals(Object object) {
-		if (object instanceof UploadEventLogParameter) {
-			UploadEventLogParameter parameters = (UploadEventLogParameter) object;
+		if (object instanceof PullTableDataModelParameter) {
+			PullTableDataModelParameter parameters = (PullTableDataModelParameter) object;
 			return super.equals(parameters) &&
 					getUrl() == parameters.getUrl() &&
 					getToken() == parameters.getToken() &&
+					getDataPool().equals(parameters.getDataPool()) &&
+					getDataModel().equals(parameters.getDataModel()) &&
 					getTableName().equals(parameters.getTableName());
 		}
 		return false;
 	}
 	
+	
+	
+	
+
 	public String getUrl() {
 		return url;
 	}
@@ -82,6 +56,22 @@ public class UploadEventLogParameter extends PluginParametersImpl {
 		this.token = token;
 	}
 
+	public String getDataPool() {
+		return dataPool;
+	}
+
+	public void setDataPool(String dataPool) {
+		this.dataPool = dataPool;
+	}
+
+	public String getDataModel() {
+		return dataModel;
+	}
+
+	public void setDataModel(String dataModel) {
+		this.dataModel = dataModel;
+	}
+
 	public String getTableName() {
 		return tableName;
 	}
@@ -91,6 +81,6 @@ public class UploadEventLogParameter extends PluginParametersImpl {
 	}
 
 	public String toString() {
-		return "(" + getUrl() + ", " + getToken() + ", " + getTableName() + ")";
+		return "(" + getUrl() + ", " + getToken() + ", " + getDataPool() + ", " + getDataModel() + ", " + getTableName() +")";
 	}
 }

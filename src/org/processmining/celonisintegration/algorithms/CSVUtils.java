@@ -23,7 +23,7 @@ import org.processmining.log.csv.CSVFileReferenceUnivocityImpl;
 import com.opencsv.CSVWriter;
 
 public class CSVUtils {
-	static void createActCSV (XLog log, File output) throws Exception {	
+	static void createActCSV (XLog log, File output, String casePrefix, String timestamp) throws Exception {	
 		Map<String, Set<String>> keyDict = new HashMap<String, Set<String>>();		
 		Set<String> keyEvent = new HashSet<String>();
 		Set<String> keyTrace = new HashSet<String>();
@@ -33,7 +33,7 @@ public class CSVUtils {
 			if (!keyTrace.containsAll(key_trace)) {
 				key_trace.removeAll(keyTrace);
 				for (String tr: key_trace) {
-					String add = "case:" + tr;
+					String add = casePrefix + tr;
 					keyTrace.add(add);
 				}
 			}
@@ -66,10 +66,9 @@ public class CSVUtils {
 					}
 				}
 				for (String key: keyDict.get("keyEvent")) {		
-					if (key.equals("time:timestamp")) {
+					if (key.equals(timestamp)) {
 						String time = event.getAttributes().get(key).toString();
-						if (!time.contains(".")) {
-							
+						if (!time.contains(".")) {							
 							String[] time1 = time.split("\\+");
 							String add = time1[0] + ".000" + "+" + time1[1]; 
 							line.add(add);
@@ -92,20 +91,54 @@ public class CSVUtils {
 		
 	}
 	
-	static void createCaseCSV(XLog log, File output) throws Exception {
+	static void createCaseCSV(XLog log, File output, String caseId, String casePrefix) throws Exception {
 		FileWriter outputFile = new FileWriter(output);
 		CSVWriter writer = new CSVWriter(outputFile);	
-		String [] header = new String[] {"case:concept:name"};
+		String [] header = new String[] {caseId};
+		
+		String caseName = caseId.substring(casePrefix.length());
+		System.out.println(caseName);
 		writer.writeNext(header);
 		List<String> listCase = new ArrayList<String>();
 		for (XTrace trace : log) {
-			if (!listCase.contains(trace.getAttributes().get("concept:name").toString())) {
-				listCase.add(trace.getAttributes().get("concept:name").toString());
-				String [] line = new String[] {trace.getAttributes().get("concept:name").toString()};
+			String val = trace.getAttributes().get(caseName).toString();
+			if (val.equals("")) {
+				throw new Exception("Case ID column and case prefix do not match or invalid");
+			}
+			if (!listCase.contains(val)) {
+				listCase.add(trace.getAttributes().get(caseName).toString());
+				String [] line = new String[] {val};
 				writer.writeNext(line);				
 			}
 		}		
 		writer.close();
+	}
+	
+	public static List<String> getColumns(XLog log, String casePrefix) {		
+		Set<String> keyEvent = new HashSet<String>();
+		Set<String> keyTrace = new HashSet<String>();
+		
+		for (XTrace trace : log) {
+			Set<String> key_trace = trace.getAttributes().keySet();
+			if (!keyTrace.containsAll(key_trace)) {
+				key_trace.removeAll(keyTrace);
+				for (String tr: key_trace) {
+					String add = casePrefix + tr;
+					keyTrace.add(add);
+				}
+			}
+		}	
+		for (XAttribute att : log.getGlobalEventAttributes()) {
+			keyEvent.add(att.getKey());
+		}
+		List<String> cols = new ArrayList<String>();
+		for(String c: keyEvent) {
+			cols.add(c);
+		}
+		for(String c: keyTrace) {
+			cols.add(c);
+		}
+		return cols;
 	}
 	
 	static void writeToCsv(String content, File output) throws IOException {

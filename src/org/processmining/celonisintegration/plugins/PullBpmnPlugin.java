@@ -11,6 +11,7 @@ import org.processmining.framework.plugin.annotations.Plugin;
 import org.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 
 
+
 public class PullBpmnPlugin extends PullBpmnAlgo {
 
 	/**

@@ -27,7 +27,7 @@ public class PullBpmnAccessDialog extends JPanel {
 	 * @throws CsvValidationException 
 	 */
 	public PullBpmnAccessDialog(UIPluginContext context, final PullBpmnParameter parameters) throws CsvValidationException, IOException {
-		String nameCache = "Celonis-Repository";
+		String nameCache = "Process-Repository";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
 		
 		

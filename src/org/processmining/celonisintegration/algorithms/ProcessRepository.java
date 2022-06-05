@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.processmining.framework.plugin.PluginContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,7 +34,7 @@ public class ProcessRepository {
 	 */
 	public HashMap<String, List<String>> getProcessRepoInfo() {
 		HashMap<String, List<String>> res = new HashMap<String, List<String>>();
-		String targetUrl = this.url + "process-repository/api/v1/categories";		
+		String targetUrl = this.url + "/process-repository/api/v1/categories";		
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
         headers.setContentType(MediaType.APPLICATION_JSON);	
@@ -63,7 +64,7 @@ public class ProcessRepository {
 	 */
 	public String getCategory(String cateName) {
 		String result = "";
-		String targetUrl = this.url + "process-repository/api/v1/categories";		
+		String targetUrl = this.url + "/process-repository/api/v1/categories";		
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
         headers.setContentType(MediaType.APPLICATION_JSON);	
@@ -115,7 +116,7 @@ public class ProcessRepository {
 	 * @return
 	 * @throws IOException
 	 */
-	public String getBpmnFileLocation(String cateName, String pmName) throws IOException {
+	public String getBpmnFileLocation(PluginContext context, String cateName, String pmName) throws IOException {
 		String categoryId = getCategory(cateName);
 		String processModelId = getProcessModel(cateName, pmName);
 		
@@ -128,6 +129,8 @@ public class ProcessRepository {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);          
         JSONObject body = new JSONObject(response.getBody());        
+        context.getProgress().inc();
+        context.log("Decoding");
         String content = body.getString("content");
         byte[] xmlDecoded = Base64.getDecoder().decode(content);
         
@@ -135,6 +138,7 @@ public class ProcessRepository {
         FileWriter outputFile = new FileWriter(tempFile);
         outputFile.write(new String(xmlDecoded));
         outputFile.close();
+        System.out.println(tempFile.getPath());
         
         return tempFile.getPath();
         

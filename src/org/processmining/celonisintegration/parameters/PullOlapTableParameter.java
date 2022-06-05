@@ -89,6 +89,6 @@ public class PullOlapTableParameter extends PluginParametersImpl {
 	}
 
 	public String toString() {
-		return "(" + getUrl() + ", " + getToken() + ", " + getAnalysisName() + ")";
+		return "(" + getUrl() + ", " + getToken() + ", " + getWorkspaceName() + getAnalysisName() + getSheetName() + getTableName() + ")";
 	}
 }

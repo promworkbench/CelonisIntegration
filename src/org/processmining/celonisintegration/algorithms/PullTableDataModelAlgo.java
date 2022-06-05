@@ -41,7 +41,7 @@ public class PullTableDataModelAlgo {
 	    Path filePath = Paths.get(fileLocation);
 	    String fileName = filePath.getFileName().toString();	
 		
-		CSVFile csv1 = CSVUtils.importFromStream(filePath, fileName, 10000);		
+		CSVFile csv1 = XESUtils.importFromStream(filePath, fileName, 10000);		
 		
 		time += System.currentTimeMillis();
 		parameters.displayMessage("Pull Table from Data Model End (took " + time/1000.0 + "  seconds).");

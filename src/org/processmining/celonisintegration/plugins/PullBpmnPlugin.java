@@ -1,5 +1,6 @@
 package org.processmining.celonisintegration.plugins;
 
+import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.processmining.celonisintegration.algorithms.PullBpmnAlgo;
 import org.processmining.celonisintegration.dialogs.PullBpmnAccessDialog;
 import org.processmining.celonisintegration.dialogs.PullBpmnDialog;
@@ -23,7 +24,7 @@ public class PullBpmnPlugin extends PullBpmnAlgo {
 	 * @throws Exception 
 	 */
 	@Plugin(
-            name = "Pull BPMN from Celonis", 
+            name = "Pull BPMN from Celonis Process Repository", 
             parameterLabels = {}, 
             returnLabels = { "BPMN diagram" }, 
             returnTypes = { BPMNDiagram.class }
@@ -32,12 +33,26 @@ public class PullBpmnPlugin extends PullBpmnAlgo {
 	@UITopiaVariant(affiliation = "RWTH Aachen", author = "Hieu Le", email = "hieu.le@rwth-aachen.de")
 	public BPMNDiagram runUI(UIPluginContext context) throws Exception {
 		// Get the default parameters.
+		context.getProgress().setMinimum(0);
+		context.getProgress().setMaximum(3);
+		context.getProgress().setIndeterminate(false);
+		
 	    PullBpmnParameter parameters = new PullBpmnParameter();
 	    // Get a dialog for this parameters.
 	    PullBpmnAccessDialog dialog1 = new PullBpmnAccessDialog(context, parameters);
+	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
+	    
+	    context.log("Getting the list of BPMN models");
 	    PullBpmnDialog dialog2 = new PullBpmnDialog(context, parameters);
-	    BPMNDiagram bpmn = runConnections(context, parameters);	    
-	    return bpmn;
+	    context.getProgress().inc();
+	    InteractionResult result2 = context.showWizard("Choose a Model", true, true, dialog2);
+	    if (result2 == InteractionResult.FINISHED) {
+	    	context.log("Sending query");
+	    	BPMNDiagram bpmn = runConnections(context, parameters);	   
+	    	context.getProgress().inc();
+		    return bpmn;
+	    }
+	    return null;
 	}	
 	
 

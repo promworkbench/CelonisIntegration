@@ -1,9 +1,9 @@
 package org.processmining.celonisintegration.plugins;
 
 
+import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.processmining.celonisintegration.algorithms.PullTableDataModelAlgo;
 import org.processmining.celonisintegration.dialogs.PullTableAccessDialog;
-import org.processmining.celonisintegration.dialogs.PullTableDataModelDialog;
 import org.processmining.celonisintegration.dialogs.PullTableDataPoolDialog;
 import org.processmining.celonisintegration.parameters.PullTableDataModelParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -24,7 +24,7 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
 	 * @throws Exception 
 	 */
 	@Plugin(
-            name = "Pull Table from Data Model", 
+            name = "Pull Table from Celonis Data Model", 
             parameterLabels = {}, 
             returnLabels = { "CSV File" }, 
             returnTypes = { CSVFile.class }
@@ -36,10 +36,18 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
 		PullTableDataModelParameter parameters = new PullTableDataModelParameter();
 	    // Get a dialog for this parameters.
 	    PullTableAccessDialog dialog1 = new PullTableAccessDialog(context, parameters);
+	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	   
+//	    if (result1 == InteractionResult.FINISHED) {
+//	    	
+//	    }
 	    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
-	    PullTableDataModelDialog dialog3 = new PullTableDataModelDialog(context, parameters);
-	    CSVFile csv = runConnections(context, parameters);	    
-	    return csv;
+	    InteractionResult result2 = context.showWizard("Choose a Table", true, true, dialog2);	   
+	    if (result2 == InteractionResult.FINISHED) {
+	    	CSVFile csv = runConnections(context, parameters);	    
+		    return csv;
+	    }
+//	    PullTableDataModelDialog dialog3 = new PullTableDataModelDialog(context, parameters);
+	    return null;
 	}	
 	
 

@@ -1,11 +1,12 @@
 package org.processmining.celonisintegration.plugins;
 
+import java.io.File;
+
+import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
 import org.deckfour.xes.model.XLog;
 import org.processmining.celonisintegration.algorithms.UploadEventLogAlgo;
-import org.processmining.celonisintegration.dialogs.UploadEventLogActColumnDialog;
-import org.processmining.celonisintegration.dialogs.UploadEventLogCaseColumnDialog;
+import org.processmining.celonisintegration.algorithms.XESUtils;
 import org.processmining.celonisintegration.dialogs.UploadEventLogDialog;
-import org.processmining.celonisintegration.dialogs.UploadEventLogTimeColumnDialog;
 import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -30,19 +31,34 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 	public XLog runUI(UIPluginContext context, XLog log) throws Exception {
 		// Get the default parameters.
 	    UploadEventLogParameter parameters = new UploadEventLogParameter();
+	    context.getProgress().setMinimum(0);
+		context.getProgress().setMaximum(10);
+		context.getProgress().setIndeterminate(false);
+		
+		context.log("Converting to CSV");
+	    File actCsv = XESUtils.createActCSV(log, "case-", 0);
+	    System.out.println("done transfering file");
+	    context.getProgress().inc();
+	    parameters.setActCSV(actCsv);
+	    context.log("done getting param12");
 	    // Get a dialog for this parameters.
-	    UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters);
-	    UploadEventLogActColumnDialog dialog2 = new UploadEventLogActColumnDialog(context, parameters, log);
-	    UploadEventLogCaseColumnDialog dialog3 = new UploadEventLogCaseColumnDialog(context, parameters, log);
-	    UploadEventLogTimeColumnDialog dialog4 = new UploadEventLogTimeColumnDialog(context, parameters, log);
+	    UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters, log);
+	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	  
 	    
-	    runConnections(context, log, parameters);	    
-	    return log;
+	    if (result1 == InteractionResult.FINISHED) {
+	    	context.log("done getting param");
+	    	runConnections(context, log, parameters);	    
+	    	context.getProgress().inc();
+		    return log;
+	    };
+	    return null;
+	    
 	}	
 	
 
 	private void runConnections(PluginContext context, XLog log,  UploadEventLogParameter parameters) throws Exception {
 		// No connection found. Apply the algorithm to compute a fresh output result.
+		context.log("getting in");
 		apply(context, log, parameters);
 		
 	}

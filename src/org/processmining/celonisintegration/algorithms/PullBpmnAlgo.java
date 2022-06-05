@@ -34,7 +34,7 @@ public class PullBpmnAlgo {
 		String url = parameters.getUrl();
 		String token = parameters.getToken();
 		ProcessRepository proRepo = new ProcessRepository(url, token);
-		String fileLocation = proRepo.getBpmnFileLocation(parameters.getCateName(), parameters.getPmName());
+		String fileLocation = proRepo.getBpmnFileLocation(context, parameters.getCateName(), parameters.getPmName());
 		InputStream input = new FileInputStream(fileLocation);
     	long fileSizeInBytes = 1000;
     	Bpmn bpmn = BpmnUtils.importFromStream(context, input, parameters.getPmName(), fileSizeInBytes);

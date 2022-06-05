@@ -34,11 +34,11 @@ public class PullOlapTableAlgo {
 	    String tableName = parameters.getTableName();
 	    
 	    ProcessAnalytics ana = new ProcessAnalytics(url, token);
-	    String fileLocation = ana.getCsv(anaName, sheetName, tableName);
+	    String fileLocation = ana.getCsv(context, anaName, sheetName, tableName);
 	    Path filePath = Paths.get(fileLocation);
 	    String fileName = filePath.getFileName().toString();	
 		
-		CSVFile csv1 = CSVUtils.importFromStream(filePath, fileName, 10000);		
+		CSVFile csv1 = XESUtils.importFromStream(filePath, fileName, 10000);		
 		
 		time += System.currentTimeMillis();
 		parameters.displayMessage("Pull OLAP Table from Celonis] End (took " + time/1000.0 + "  seconds).");

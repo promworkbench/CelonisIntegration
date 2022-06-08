@@ -8,11 +8,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
+import org.processmining.celonisintegration.algorithms.CelonisObject.OLAPTable;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Sheet;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
 import org.processmining.celonisintegration.algorithms.ProcessAnalytics;
-import org.processmining.celonisintegration.algorithms.ProcessAnalytics.Analysis;
-import org.processmining.celonisintegration.algorithms.ProcessAnalytics.OLAPTable;
-import org.processmining.celonisintegration.algorithms.ProcessAnalytics.Sheet;
-import org.processmining.celonisintegration.algorithms.ProcessAnalytics.Workspace;
 import org.processmining.celonisintegration.parameters.PullOlapTableParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMList;
@@ -64,31 +64,6 @@ public class PullOlapTableWsDialog extends JPanel {
 		});
 
 		add(list, "0,0");
-		//		ButtonGroup g = new ButtonGroup();
-		//		List<JRadioButton> options = new ArrayList<JRadioButton>();
-		//		for (String ws: workspaces) {						
-		//			JRadioButton x = new JRadioButton(ws);
-		//			g.add(x);
-		//			options.add(x);
-		//			
-		//		}		
-		//		JPanel myPanel = new JPanel();
-		//        myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));        
-		//        for (JRadioButton x: options) {
-		//        	myPanel.add(x);
-		//        }        
-		//        
-		//        int w = JOptionPane.showConfirmDialog(null, myPanel,
-		//                        "Choose your workspace",JOptionPane.OK_CANCEL_OPTION);
-		//
-		//        context.getFutureResult(0).setLabel("Workspace");
-		//        
-		//        for (JRadioButton x: options) {
-		//        	if (x.isSelected()) {
-		//        		parameters.setWorkspaceName(x.getText());
-		//        		break;
-		//        	}
-		//        }  
 
 	}
 }

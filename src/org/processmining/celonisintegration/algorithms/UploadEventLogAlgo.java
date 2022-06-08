@@ -5,10 +5,14 @@ import java.util.HashMap;
 
 import org.deckfour.xes.model.XLog;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.AnalysisStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataPoolStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.TableStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.WorkspaceStatus;
 import org.processmining.framework.plugin.PluginContext;
 
 public class UploadEventLogAlgo {
-	
 
 	/**
 	 * 
@@ -20,37 +24,112 @@ public class UploadEventLogAlgo {
 	 */
 	public void apply(PluginContext context, XLog log, UploadEventLogParameter parameters) throws Exception {
 		/**
-		 * Put your algorithm here, which computes an output form the inputs provided the parameters.
+		 * Put your algorithm here, which computes an output form the inputs
+		 * provided the parameters.
 		 */
 		long time = -System.currentTimeMillis();
 		parameters.displayMessage("[YourAlgorithm] Start");
-		parameters.displayMessage("[YourAlgorithm] First input = " + log.toString());		
+		parameters.displayMessage("[YourAlgorithm] First input = " + log.toString());
 		parameters.displayMessage("[YourAlgorithm] Parameters = " + parameters.toString());
-		context.log("aa1");
+
 		String url = parameters.getUrl();
 		String token = parameters.getToken();
-		String tableName = parameters.getTableName();
+		DataIntegration celonis = new DataIntegration(url, token);
+
 		String casePrefix = "case-";
 		String actCol = parameters.getActCol();
-		context.log("aa2");
 		String caseCol = parameters.getCaseCol();
-		context.log("aa3");
 		String timeCol = parameters.getTimeCol();
-		context.log("aa4");
 		String actColNew = parameters.getActColNew();
-		context.log("aa5");
 		String caseColNew = parameters.getCaseColNew();
-		context.log("aa6");
 		String timeColNew = parameters.getTimeColNew();
-		context.log("aa7");
+
 		String dp = parameters.getDataPool();
-		context.log(dp);
 		String dm = parameters.getDataModel();
-		context.log(dm);
+		String tableName = parameters.getTableName();
 		String ws = parameters.getWorkspace();
-		context.log(ws);
+		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE 
+				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
+			ws = parameters.getWorkspaceReplace();
+		}
 		String ana = parameters.getAnalysis();
-		context.log(ana);
+		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE 
+				||parameters.getAnalysisStatus() == AnalysisStatus.ADD) {
+			ana = parameters.getAnalysisReplace();
+		}
+		
+		String dataPoolId = "";
+		String dataModelId = "";
+		String workspaceId = "";
+		String anaId = "";
+		
+		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
+			dataPoolId = celonis.createDataPool(dp);
+			dataModelId = celonis.createDataModel(dm, dataPoolId);
+			workspaceId = celonis.createWorkspace(dataModelId, ws);
+			anaId = celonis.createAnalysis(workspaceId, ana);
+		}
+		
+		else if (parameters.getDataPoolStatus() == DataPoolStatus.REPLACE) {
+			dp = parameters.getDataPoolReplace();
+			String dpId = celonis.getDataPoolId(dp);
+			celonis.deleteDataPool(dpId);
+			dataPoolId = celonis.createDataPool(dp);
+			dataModelId = celonis.createDataModel(dm, dataPoolId);
+			workspaceId = celonis.createWorkspace(dataModelId, ws);
+			anaId = celonis.createAnalysis(workspaceId, ana);
+		}
+		
+		else {
+			dp = parameters.getDataPoolReplace();
+			dataPoolId = celonis.getDataPoolId(dp);
+			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {						
+				dataModelId = celonis.createDataModel(dm, dataPoolId);
+				workspaceId = celonis.createWorkspace(dataModelId, ws);
+				anaId = celonis.createAnalysis(workspaceId, ana);
+			}
+			else if (parameters.getDataModelStatus() == DataModelStatus.REPLACE) {
+				dm = parameters.getDataModelReplace();
+				String dmId = celonis.getDataModelId(dp, dm);
+				celonis.deleteDataModel(dataPoolId, dmId);
+				dataModelId = celonis.createDataModel(dm, dataPoolId);
+				workspaceId = celonis.createWorkspace(dataModelId, ws);
+				anaId = celonis.createAnalysis(workspaceId, ana);
+				
+			}
+			else {
+				dm = parameters.getDataModelReplace();
+				dataModelId = celonis.getDataModelId(dp, dm);
+				if (parameters.getTableStatus() == TableStatus.REPLACE) {
+					tableName = parameters.getTableNameReplace();
+					String tableId = celonis.getDataModeTablelId(dp, dm, tableName);
+					celonis.deleteDataModelTable(dataPoolId, dataModelId, tableId);
+				}
+				if (parameters.getWorkspaceStatus() == WorkspaceStatus.NEW) {
+					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					anaId = celonis.createAnalysis(workspaceId, ana);
+				}
+				else if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE) {
+					ws = parameters.getWorkspaceReplace();
+					String wsId = celonis.getWorkspaceId(ws);
+					celonis.deleteWorkspace(wsId);
+					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					anaId = celonis.createAnalysis(workspaceId, ana);
+				}
+				else {
+					ws = parameters.getWorkspaceReplace();
+					workspaceId = celonis.getWorkspaceId(ws);
+					if (parameters.getAnalysisStatus() == AnalysisStatus.NEW) {
+						anaId = celonis.createAnalysis(workspaceId, ana);
+					}
+					else {
+						ana = parameters.getAnalysisReplace();
+						anaId = celonis.getAnalysisId(ws, ana);
+					}
+				}
+			}
+		}
+		
 		HashMap<String, String> mapping = new HashMap<String, String>();
 		if (dp.length() == 0) {
 			dp = tableName + "_DATAPOOL";
@@ -78,55 +157,52 @@ public class UploadEventLogAlgo {
 			mapping.put(timeCol, timeColNew);
 			timeCol = timeColNew;
 		}
-		
-		context.log(parameters.getActCSV().getAbsolutePath());
+
 		File actCSV = parameters.getActCSV();
 		context.log("Creating case table");
-    	File caseCSV = XESUtils.createCaseCSV(log, casePrefix); 
-    	context.getProgress().inc();
-    	
-    	
-    	if (!mapping.isEmpty()) {
-    		actCSV = XESUtils.changeColumnName(actCSV, mapping);
-    		caseCSV = XESUtils.changeColumnName(caseCSV, mapping);
-    	}
-    	
-    	DataIntegration celonis = new DataIntegration(url, token);    	
-        String dataPoolId = celonis.createDataPool(dp);
-        
-        context.log("Uploading activity table");
-    	celonis.uploadCSV(dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 100000);    
-    	context.getProgress().inc();
-    	context.log("Uploading case table");
-    	celonis.uploadCSV(dataPoolId, caseCSV.getPath(), tableName + "_CASE", timeCol, 100000);
-    	context.getProgress().inc();
-    	context.log("Creating data model");
-    	String dataModelId = celonis.createDataModel(dm, dataPoolId);
-    	context.getProgress().inc();
-    	context.log("Adding activity table to data pool");
-    	celonis.addTableFromPool(tableName + "_ACTIVITIES", dataPoolId, dataModelId);
-    	context.getProgress().inc();
-    	context.log("Adding case table to data pool");
-    	celonis.addTableFromPool(tableName + "_CASE", dataPoolId, dataModelId);
-    	context.getProgress().inc();
-    	context.log("Configuring foreign keys");
-    	celonis.addForeignKeys(tableName + "_ACTIVITIES", caseCol, tableName + "_CASE", 
-    			caseCol, dataModelId, dataPoolId);
-    	celonis.addProcessConfiguration(dataModelId, dataPoolId, tableName+"_ACTIVITIES", tableName+"_CASE", 
-    			caseCol, actCol, timeCol);
-    	context.getProgress().inc();
-    	context.log("Reloading data model");
-    	celonis.reloadDataModel(dataModelId, dataPoolId);
-    	context.getProgress().inc();
-    	context.log("Creating workspace");
-    	String workspaceId = celonis.createWorkspace(dataModelId, ws);
-    	context.log("Creating analysis");
-    	String anaId = celonis.createAnalysis(workspaceId, ana);
-    	
-    	actCSV.delete();
-    	caseCSV.delete();
+		File caseCSV = XESUtils.createCaseCSV(log, casePrefix);
+		context.getProgress().inc();
+
+		if (!mapping.isEmpty()) {
+			actCSV = XESUtils.changeColumnName(actCSV, mapping);
+			caseCSV = XESUtils.changeColumnName(caseCSV, mapping);
+		}
+
 		
+		context.log("Uploading activity table");
+		celonis.uploadCSV(dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 100000);
+		context.getProgress().inc();
+		context.log("Uploading case table");
+		celonis.uploadCSV(dataPoolId, caseCSV.getPath(), tableName + "_CASE", timeCol, 100000);
+		context.getProgress().inc();
+		context.log("Creating data model");
+		
+		context.getProgress().inc();
+		context.log("Adding activity table to data pool");
+		celonis.addTableFromPool(tableName + "_ACTIVITIES", dataPoolId, dataModelId);
+		context.getProgress().inc();
+		context.log("Adding case table to data pool");
+		celonis.addTableFromPool(tableName + "_CASE", dataPoolId, dataModelId);
+		context.getProgress().inc();
+		context.log("Configuring foreign keys");
+		celonis.addForeignKeys(tableName + "_ACTIVITIES", caseCol, tableName + "_CASE", caseCol, dataModelId,
+				dataPoolId);
+		celonis.addProcessConfiguration(dataModelId, dataPoolId, tableName + "_ACTIVITIES", tableName + "_CASE",
+				caseCol, actCol, timeCol);
+		context.getProgress().inc();
+		context.log("Reloading data model");
+		celonis.reloadDataModel(dataModelId, dataPoolId);
+		context.getProgress().inc();
+		context.log("Creating workspace");
+		
+		context.log("Creating analysis");
+		
+
+		actCSV.delete();
+		caseCSV.delete();
+
 		time += System.currentTimeMillis();
-		parameters.displayMessage("[YourAlgorithm] End (took " + time/1000.0 + "  seconds).");
+		parameters.displayMessage("[YourAlgorithm] End (took " + time / 1000.0 + "  seconds).");
 	}
+	
 }

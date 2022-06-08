@@ -1,3 +1,4 @@
+
 package org.processmining.celonisintegration.dialogs;
 
 import java.io.IOException;
@@ -8,7 +9,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.processmining.celonisintegration.algorithms.CacheUtils;
-import org.processmining.celonisintegration.parameters.PullBpmnParameter;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMTextField;
 
@@ -17,7 +18,7 @@ import com.opencsv.exceptions.CsvValidationException;
 import info.clearthought.layout.TableLayout;
 import info.clearthought.layout.TableLayoutConstants;
 
-public class PullBpmnAccessDialog extends JPanel {
+public class UploadEventLogAccessDialog extends JPanel {
 
 	/**
 	 * 
@@ -29,10 +30,10 @@ public class PullBpmnAccessDialog extends JPanel {
 	 * @throws IOException 
 	 * @throws CsvValidationException 
 	 */
-	public PullBpmnAccessDialog(UIPluginContext context, final PullBpmnParameter parameters) throws CsvValidationException, IOException {
-		String nameCache = "Process-Repository";
+	public UploadEventLogAccessDialog(UIPluginContext context, final UploadEventLogParameter parameters) throws CsvValidationException, IOException {
+		String nameCache = "Data-Integration";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
-		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM,TableLayoutConstants.MINIMUM } };
+		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, 40, 40,40 } };
 		setLayout(new TableLayout(size));
 		
 		ProMTextField urlField = new ProMTextField(accessInfo[0]);
@@ -143,6 +144,12 @@ public class PullBpmnAccessDialog extends JPanel {
 		add(url, "0, 0");
 		add(urlField, "0, 1");
 		add(token, "0, 2");
-		add(tokenField, "0, 3");          
+		add(tokenField, "0, 3");
+		
+       
+        
+//        
+
+        
 	}
 }

@@ -18,6 +18,36 @@ import com.opencsv.exceptions.CsvValidationException;
 
 public class CacheUtils {	
 	
+	public static void updateToken(String nameCache, String token) throws CsvValidationException, IOException {
+		String cachePath = Paths.get("").toAbsolutePath().toString() + "\\cache";
+		String fileCache = nameCache + ".csv";
+		String url = getAccessInfo(nameCache)[0];
+		boolean file = new File(cachePath).mkdirs();		
+		
+		List<String[]> update = new ArrayList<String[]>();
+		String[] row = {url, token};
+		update.add(row);
+		FileWriter outputfile = new FileWriter(cachePath + "\\" + fileCache);
+		CSVWriter writer = new CSVWriter(outputfile);
+		writer.writeAll(update);			
+		writer.close();
+	}
+	
+	public static void updateUrl(String nameCache, String url) throws CsvValidationException, IOException {
+		String cachePath = Paths.get("").toAbsolutePath().toString() + "\\cache";
+		String fileCache = nameCache + ".csv";
+		String token = getAccessInfo(nameCache)[1];
+		boolean file = new File(cachePath).mkdirs();		
+		
+		List<String[]> update = new ArrayList<String[]>();
+		String[] row = {url, token};
+		update.add(row);
+		FileWriter outputfile = new FileWriter(cachePath + "\\" + fileCache);
+		CSVWriter writer = new CSVWriter(outputfile);
+		writer.writeAll(update);			
+		writer.close();
+	}
+	
 	public static void updateAccessInfo(String nameCache, String url, String token) throws IOException {
 		String cachePath = Paths.get("").toAbsolutePath().toString() + "\\cache";
 		String fileCache = nameCache + ".csv";

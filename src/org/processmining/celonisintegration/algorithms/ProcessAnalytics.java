@@ -10,6 +10,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
+import org.processmining.celonisintegration.algorithms.CelonisObject.OLAPTable;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Sheet;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
 import org.processmining.framework.plugin.PluginContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -86,7 +90,8 @@ public class ProcessAnalytics {
 			JSONObject ws = body.getJSONObject(i);
 			String name = ws.getString("name");
 			String id = ws.getString("id");
-			this.workspaces.add(new Workspace(name, id));
+			String dmId = ws.getString("dmId");
+			this.workspaces.add(new CelonisObject().new Workspace(name, id, dmId));
 		}
 	}
 
@@ -107,7 +112,7 @@ public class ProcessAnalytics {
 				if (ana.getString("parentObjectId").equals(ws.getId())) {
 					String name = ana.getString("name");
 					String id = ana.getString("id");
-					this.analyses.add(new Analysis(name, id, ws));
+					this.analyses.add(new CelonisObject().new Analysis(name, id, ws));
 					break;
 				}
 			}
@@ -134,7 +139,7 @@ public class ProcessAnalytics {
 				String name = sheetJson.getString("name");
 				String translatedName = translateName(name);
 				String id = sheetJson.getString("id");
-				Sheet sheet = new Sheet(name, translatedName, id, ana);
+				Sheet sheet = new CelonisObject().new Sheet(name, translatedName, id, ana);
 				this.sheets.add(sheet);
 				JSONArray components = new JSONArray(sheetJson.getJSONArray("components"));
 				for (int j = 0; j < components.length(); j++) {
@@ -144,7 +149,7 @@ public class ProcessAnalytics {
 							String tableName = comp.getString("title");
 							String translatedTableName = translateName(tableName);
 							String tableId = comp.getString("id");
-							this.tables.add(new OLAPTable(tableName, translatedTableName, tableId, sheet));
+							this.tables.add(new CelonisObject().new OLAPTable(tableName, translatedTableName, tableId, sheet));
 						}
 					}
 				}
@@ -170,161 +175,7 @@ public class ProcessAnalytics {
 		return res;
 	}
 
-	public class Workspace {
-		private String name;
-		private String id;
-
-		public Workspace(String name, String id) {
-			this.name = name;
-			this.id = id;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-	}
-
-	public class Analysis {
-		private String name;
-		private String id;
-		private Workspace workspace;
-
-		public Analysis(String name, String id, Workspace workspace) {
-			this.name = name;
-			this.id = id;
-			this.workspace = workspace;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-		public Workspace getWorkspace() {
-			return workspace;
-		}
-
-		public void setWorkspace(Workspace workspace) {
-			this.workspace = workspace;
-		}
-
-	}
-
-	public class Sheet {
-		private String name;
-		private String id;
-		private Analysis analysis;
-		private String translatedName;
-
-		public Sheet(String name, String translatedName, String id, Analysis analysis) {
-			this.name = name;
-			this.id = id;
-			this.analysis = analysis;
-			this.translatedName = translatedName;
-		}
-
-		public String getTranslatedName() {
-			return translatedName;
-		}
-
-		public void setTranslatedName(String translatedName) {
-			this.translatedName = translatedName;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-		public Analysis getAnalysis() {
-			return analysis;
-		}
-
-		public void setAnalysis(Analysis analysis) {
-			this.analysis = analysis;
-		}
-	}
-
-	public class OLAPTable {
-		private String name;
-		private String translatedName;
-		private String id;
-		private Sheet sheet;
-
-		public OLAPTable(String name, String translatedName, String id, Sheet sheet) {
-			this.name = name;
-			this.id = id;
-			this.sheet = sheet;
-			this.translatedName = translatedName;
-		}
-
-		public String getTranslatedName() {
-			return translatedName;
-		}
-
-		public void setTranslatedName(String translatedName) {
-			this.translatedName = translatedName;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-		public Sheet getSheet() {
-			return sheet;
-		}
-
-		public void setSheet(Sheet sheet) {
-			this.sheet = sheet;
-		}
-	}
+	
 
 	public String getAnalysisIdByName(String name) {
 		String id = "";

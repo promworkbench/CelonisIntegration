@@ -27,47 +27,117 @@ public class PullOlapTableAccessDialog extends JPanel {
 
 	/**
 	 * The JPanel that allows the user to set (a subset of) the parameters.
-	 * @throws IOException 
-	 * @throws CsvValidationException 
+	 * 
+	 * @throws IOException
+	 * @throws CsvValidationException
 	 */
-	public PullOlapTableAccessDialog(UIPluginContext context, final PullOlapTableParameter parameters) throws CsvValidationException, IOException {
+	public PullOlapTableAccessDialog(UIPluginContext context, final PullOlapTableParameter parameters)
+			throws CsvValidationException, IOException {
 		String nameCache = "Process-Analytics";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
-		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, 40, 40,40 } };
+		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, 40, 40, 40 } };
 		setLayout(new TableLayout(size));
-		
+
 		ProMTextField urlField = new ProMTextField(accessInfo[0]);
+		ProMTextField tokenField = new ProMTextField(accessInfo[1]);
 		parameters.setUrl(accessInfo[0]);
+		parameters.setToken(accessInfo[1]);
+		
 		urlField.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
-				parameters.setUrl(urlField.getText());		
-			  }
+				parameters.setUrl(urlField.getText());
+				if (!urlField.getText().equals(accessInfo[0])) {
+					try {
+						CacheUtils.updateUrl(nameCache, urlField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
 
 			public void changedUpdate(DocumentEvent e) {
-				parameters.setUrl(urlField.getText());		
-				
+				parameters.setUrl(urlField.getText());
+				if (!urlField.getText().equals(accessInfo[0])) {
+					try {
+						CacheUtils.updateUrl(nameCache, urlField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+
 			}
 
 			public void removeUpdate(DocumentEvent e) {
-				parameters.setUrl(urlField.getText());		
-				
+				parameters.setUrl(urlField.getText());
+				if (!urlField.getText().equals(accessInfo[0])) {
+					try {
+						CacheUtils.updateUrl(nameCache, urlField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+
 			}
 		});
-		ProMTextField tokenField = new ProMTextField(accessInfo[1]);
-		parameters.setToken(accessInfo[1]);	
+		
 		tokenField.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
-				parameters.setToken(tokenField.getText());		
-			  }
+				parameters.setToken(tokenField.getText());
+				if (!tokenField.getText().equals(accessInfo[1])) {
+					try {
+						CacheUtils.updateToken(nameCache, tokenField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
 
 			public void changedUpdate(DocumentEvent e) {
-				parameters.setToken(tokenField.getText());		
-				
+				parameters.setToken(tokenField.getText());
+				if (!tokenField.getText().equals(accessInfo[1])) {
+					try {
+						CacheUtils.updateToken(nameCache, tokenField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+
 			}
 
 			public void removeUpdate(DocumentEvent e) {
-				parameters.setToken(tokenField.getText());		
-				
+				parameters.setToken(tokenField.getText());
+				if (!tokenField.getText().equals(accessInfo[1])) {
+					try {
+						CacheUtils.updateToken(nameCache, tokenField.getText());
+					} catch (CsvValidationException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+
 			}
 		});
 
@@ -77,14 +147,12 @@ public class PullOlapTableAccessDialog extends JPanel {
 		add(urlField, "0, 1");
 		add(token, "0, 2");
 		add(tokenField, "0, 3");
-		
-        if (!urlField.getText().equals(accessInfo[0]) || ! tokenField.getText().equals(accessInfo[1])) {
-        	CacheUtils.updateAccessInfo(nameCache, urlField.getText(), tokenField.getText());
-        }
-        
-        
-//        
 
-        
+//		if (!urlField.getText().equals(accessInfo[0]) || !tokenField.getText().equals(accessInfo[1])) {
+//			CacheUtils.updateAccessInfo(nameCache, urlField.getText(), tokenField.getText());
+//		}
+
+		//        
+
 	}
 }

@@ -18,6 +18,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
+import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
+import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
+import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
+import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
+import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,10 +43,240 @@ import com.opencsv.exceptions.CsvValidationException;
 public class DataIntegration {
 	private String url;
 	private String apiToken;
+	private List<Workspace> workspaces;
+	private List<Analysis> analyses;
+	private List<DataPool> dataPools;
+	private List<DataModel> dataModels;
+	private List<DataModelTable> dataModelTables;
 
 	public DataIntegration(String url, String apiToken) {
 		this.url = url;
 		this.apiToken = apiToken;
+		this.workspaces = new ArrayList<Workspace>();
+		this.analyses = new ArrayList<Analysis>();
+		this.dataPools = new ArrayList<DataPool>();
+		this.dataModels = new ArrayList<DataModel>();
+		this.dataModelTables = new ArrayList<DataModelTable>();
+		
+		this.updateWorkspaces();
+		this.updateAnalyses();
+		this.updateDataPools();
+		this.updateDataModels();
+	}
+
+	public List<Workspace> getWorkspaces() {
+		return workspaces;
+	}
+
+	public void setWorkspaces(List<Workspace> workspaces) {
+		this.workspaces = workspaces;
+	}
+
+	public List<Analysis> getAnalyses() {
+		return analyses;
+	}
+
+	public void setAnalyses(List<Analysis> analyses) {
+		this.analyses = analyses;
+	}
+
+	public List<DataPool> getDataPools() {
+		return dataPools;
+	}
+
+	public void setDataPools(List<DataPool> dataPools) {
+		this.dataPools = dataPools;
+	}
+
+	public List<DataModel> getDataModels() {
+		return dataModels;
+	}
+
+	public void setDataModels(List<DataModel> dataModels) {
+		this.dataModels = dataModels;
+	}
+
+	public List<DataModelTable> getDataModelTables() {
+		return dataModelTables;
+	}
+
+	public void setDataModelTables(List<DataModelTable> dataModelTables) {
+		this.dataModelTables = dataModelTables;
+	}
+	
+	public String getDataPoolId(String dpName) {
+		String res = "";
+		for (DataPool dp : this.getDataPools()) {
+			if (dp.getName().equals(dpName)) {
+				return dp.getId();
+			}
+		}
+		return res;
+	}
+	
+	public String getDataModelId(String dpName, String dmName) {
+		String res = "";
+		for (DataModel dm: this.getDataModels()) {
+			if (dm.getDp().getName().equals(dpName) && dm.getName().equals(dmName)) {
+				return dm.getId();
+			}
+		}
+		return res;
+	}
+	
+	public String getDataModeTablelId(String dpName, String dmName, String table) {
+		String res = "";
+		DataModel dmO = new CelonisObject().new DataModel();
+		for (DataModel dm: this.getDataModels()) {
+			if (dm.getDp().getName().equals(dpName) && dm.getName().equals(dmName)) {
+				dmO = dm;
+			}
+		}
+		for (DataModelTable tab : this.getDataModelTables()) {
+			if (dmO.getId().equals(tab.getDmId())) {
+				return tab.getId();
+			}
+		}
+		return res;
+	}
+	
+	public String getWorkspaceId(String wsName) {
+		String res = "";
+		for (Workspace ws: this.getWorkspaces()) {
+			if (ws.getName().equals(wsName)) {
+				return ws.getId();
+			}
+		}
+		return res;
+	}
+	
+	public String getAnalysisId(String wsName, String anaName) {
+		String res = "";		
+		for (Analysis ana: this.getAnalyses()) {
+			if (ana.getWorkspace().getName().equals(wsName) && ana.getName().equals(anaName)) {
+				return ana.getId();
+			}
+		}
+		return res;
+	}
+
+	public void updateWorkspaces() {
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = this.url + "/process-mining/api/processes";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+
+		JSONArray body = new JSONArray(r.getBody());
+		for (int i = 0; i < body.length(); i++) {
+			JSONObject ws = body.getJSONObject(i);
+			String name = ws.getString("name");
+			String id = ws.getString("id");
+			String dmId = ws.getString("dataModelId");
+			this.workspaces.add(new CelonisObject().new Workspace(name, id, dmId));
+		}
+	}
+
+	public void updateAnalyses() {
+
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = this.url + "/process-mining/api/analysis";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+
+		JSONArray body = new JSONArray(r.getBody());
+		for (int i = 0; i < body.length(); i++) {
+			JSONObject ana = body.getJSONObject(i);
+			for (Workspace ws : workspaces) {
+				if (ana.getString("parentObjectId").equals(ws.getId())) {
+					String name = ana.getString("name");
+					String id = ana.getString("id");
+					this.analyses.add(new CelonisObject().new Analysis(name, id, ws));
+					break;
+				}
+			}
+
+		}
+	}
+
+	public void updateDataPools() {
+
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = String.format(this.url + "/integration/api/pools");
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		JSONArray body = new JSONArray(r.getBody());
+
+		for (int i = 0; i < body.length(); i++) {
+			JSONObject obj = body.getJSONObject(i);
+			String name = obj.getString("name");
+			String id = obj.getString("id");
+			this.dataPools.add(new CelonisObject().new DataPool(name, id));
+		}
+
+	}
+
+	public void updateDataModels() {
+
+		for (DataPool dp : this.dataPools) {
+			String dpId = dp.getId();
+			RestTemplate restTemplate = new RestTemplate();
+			String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Authorization", "Bearer " + this.apiToken);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+
+			ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+			JSONArray body = new JSONArray(r.getBody());
+
+			for (int i = 0; i < body.length(); i++) {
+				JSONObject obj = body.getJSONObject(i);
+				String name = obj.getString("name");
+				String id = obj.getString("id");
+				JSONArray tablesJSON = obj.getJSONArray("tables");
+				String actTableId = "";
+				String caseTableId = "";
+				if (obj.getJSONArray("processConfigurations").length() > 0) {
+					if (obj.getJSONArray("processConfigurations").getJSONObject(0).has("activityTableId")) {
+						actTableId = obj.getJSONArray("processConfigurations").getJSONObject(0).getString("activityTableId");
+					}
+					
+					if (obj.getJSONArray("processConfigurations").getJSONObject(0).has("caseTableId")) {
+						caseTableId = obj.getJSONArray("processConfigurations").getJSONObject(0).getString("activityTableId");
+					}
+				}
+				
+				List<DataModelTable> tables = new ArrayList<DataModelTable>();
+
+				for (int j = 0; j < tablesJSON.length(); j++) {
+					String nameTable = tablesJSON.getJSONObject(j).getString("name");
+					String idTable = tablesJSON.getJSONObject(j).getString("id");
+					DataModelTableType tableType = DataModelTableType.NORMAL;
+					if (idTable.equals(actTableId)) {
+						tableType = DataModelTableType.ACTIVITY;
+					}
+					else if (idTable.equals(caseTableId)) {
+						tableType = DataModelTableType.CASE;
+					}
+					tables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
+					this.dataModelTables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
+				}
+				this.dataModels.add(new CelonisObject().new DataModel(name, id, dp, tables));
+			}
+		}
+
 	}
 
 	public String getCsv(String dpId, String dmId, String tableName) throws Exception {
@@ -188,136 +424,155 @@ public class DataIntegration {
 		return res;
 	}
 
-	public List<String> getTables(String dpId, String dmId) {
-		List<String> res = new ArrayList<String>();
+//	public String getDataModelIdByName(String dmName, String dpId) {
+//		String res = "";
+//		RestTemplate restTemplate = new RestTemplate();
+//		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.add("Authorization", "Bearer " + this.apiToken);
+//		headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+//
+//		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+//		JSONArray body = new JSONArray(r.getBody());
+//		for (int i = 0; i < body.length(); i++) {
+//			JSONObject obj = body.getJSONObject(i);
+//			if (obj.getString("name").equals(dmName)) {
+//				res = obj.getString("id");
+//			}
+//		}
+//		return res;
+//	}
 
+	//	public String getDataPoolIdByName(String name) {
+	//		String res = "";
+	//		RestTemplate restTemplate = new RestTemplate();
+	//		String targetUrl = String.format(this.url + "/integration/api/pools");
+	//		HttpHeaders headers = new HttpHeaders();
+	//		headers.add("Authorization", "Bearer " + this.apiToken);
+	//		headers.setContentType(MediaType.APPLICATION_JSON);
+	//
+	//		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+	//
+	//		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+	//		JSONArray body = new JSONArray(r.getBody());
+	//
+	//		for (int i = 0; i < body.length(); i++) {
+	//			JSONObject obj = body.getJSONObject(i);
+	//			if (obj.getString("name").equals(name)) {
+	//				res = obj.getString("id");
+	//			}
+	//		}
+	//		return res;
+	//	}
+
+	
+	
+	
+	
+	public void deleteDataPool(String dpId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables";
+		String targetUrl = this.url + "/integration/api/pools/" + dpId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-		JSONArray body = new JSONArray(r.getBody());
-
-		for (int i = 0; i < body.length(); i++) {
-			JSONObject obj = body.getJSONObject(i);
-			res.add(obj.getString("aliasOrName"));
-		}
-		return res;
+		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
 	}
-
-	public String getDataModelIdByName(String dmName, String dpId) {
-		String res = "";
+	
+	public void deleteDataModel(String dpId, String dmId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
+		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-		JSONArray body = new JSONArray(r.getBody());
-		for (int i = 0; i < body.length(); i++) {
-			JSONObject obj = body.getJSONObject(i);
-			if (obj.getString("name").equals(dmName)) {
-				res = obj.getString("id");
-			}
-		}
-		return res;
+		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
 	}
-
-	public List<String> getDataModels(String dpId) {
-		List<String> res = new ArrayList<String>();
-
+	
+	public void deleteDataModelTable(String dpId, String dmId, String tableId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
+		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId + "/tables/" + tableId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-		JSONArray body = new JSONArray(r.getBody());
-
-		for (int i = 0; i < body.length(); i++) {
-			JSONObject obj = body.getJSONObject(i);
-			res.add(obj.getString("name"));
-		}
-		return res;
+		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
 	}
-
-	public String getDataPoolIdByName(String name) {
-		String res = "";
+	
+	public void deleteWorkspace(String wsId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = String.format(this.url + "/integration/api/pools");
+		String targetUrl = this.url + "/process-mining/api/processes" + wsId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-		JSONArray body = new JSONArray(r.getBody());
-
-		for (int i = 0; i < body.length(); i++) {
-			JSONObject obj = body.getJSONObject(i);
-			if (obj.getString("name").equals(name)) {
-				res = obj.getString("id");
-			}
-		}
-		return res;
+		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
 	}
-
-	public List<String> getDataPools() {
-		List<String> res = new ArrayList<String>();
-
+	
+	public void deleteAnalysis(String anaId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = String.format(this.url + "/integration/api/pools");
+		String targetUrl = this.url + "/process-mining/api/analysis" + anaId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-		JSONArray body = new JSONArray(r.getBody());
-
-		for (int i = 0; i < body.length(); i++) {
-			JSONObject obj = body.getJSONObject(i);
-			res.add(obj.getString("name"));
-		}
-		return res;
+		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
 	}
-
+	
 	/**
-	 * Create a new analysis in the workspace
+	 * Create a new data pool in Celonis
 	 * 
-	 * @param workspaceId
 	 * @param name
 	 * @return
 	 */
-	public String createAnalysis(String workspaceId, String name) {
+	public String createDataPool(String name) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/process-mining/api/analysis";
+		String targetUrl = this.url + "/integration/api/pools";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		JSONObject request = new JSONObject();
 		request.put("name", name);
-		request.put("processId", workspaceId);
-		request.put("applicationId", JSONObject.NULL);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
 
 		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
 
 		JSONObject body = new JSONObject(r.getBody());
+		return body.getString("id");
+	}
+
+	/**
+	 * Create a new data model in Celonis
+	 * 
+	 * @param modelName
+	 * @param dataPoolId
+	 * @return
+	 */
+	public String createDataModel(String modelName, String dataPoolId) {
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models", dataPoolId);
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		JSONObject request = new JSONObject();
+		request.put("name", modelName);
+		request.put("poolId", dataPoolId);
+		request.put("configurationSkipped", true);
+
+		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
+
+		String r = restTemplate.postForObject(targetUrl, jobRequest, String.class);
+		JSONObject body = new JSONObject(r);
 		return body.getString("id");
 	}
 
@@ -346,6 +601,26 @@ public class DataIntegration {
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
 
+	}
+	
+	public String createAnalysis(String workspaceId, String name) {
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = this.url + "/process-mining/api/analysis";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		JSONObject request = new JSONObject();
+		request.put("name", name);
+		request.put("processId", workspaceId);
+		request.put("applicationId", JSONObject.NULL);
+
+		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
+
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
+
+		JSONObject body = new JSONObject(r.getBody());
+		return body.getString("id");
 	}
 
 	/**
@@ -523,55 +798,7 @@ public class DataIntegration {
 		restTemplate.postForEntity(targetUrl, jobRequest, Object.class);
 	}
 
-	/**
-	 * Create a new data pool in Celonis
-	 * 
-	 * @param name
-	 * @return
-	 */
-	public String createDataPool(String name) {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-		headers.setContentType(MediaType.APPLICATION_JSON);
-
-		JSONObject request = new JSONObject();
-		request.put("name", name);
-
-		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
-
-		JSONObject body = new JSONObject(r.getBody());
-		return body.getString("id");
-	}
-
-	/**
-	 * Create a new data model in Celonis
-	 * 
-	 * @param modelName
-	 * @param dataPoolId
-	 * @return
-	 */
-	public String createDataModel(String modelName, String dataPoolId) {
-		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models", dataPoolId);
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", "Bearer " + this.apiToken);
-		headers.setContentType(MediaType.APPLICATION_JSON);
-
-		JSONObject request = new JSONObject();
-		request.put("name", modelName);
-		request.put("poolId", dataPoolId);
-		request.put("configurationSkipped", true);
-
-		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		String r = restTemplate.postForObject(targetUrl, jobRequest, String.class);
-		JSONObject body = new JSONObject(r);
-		return body.getString("id");
-	}
+	
 
 	/**
 	 * Upload the CSV file to Celonis

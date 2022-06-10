@@ -5,7 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -278,7 +282,200 @@ public class DataIntegration {
 		}
 
 	}
+	
+	public String mergeCsv(String actCsvLocation, String caseCsvLocation, String actColName, String caseColName) throws CsvValidationException, IOException {
+		HashMap<String, String[]> mapCaseTable = this.getMapCaseTable(caseCsvLocation, caseColName);
+		int colIndex = 0;
+		
+		Reader readerAct = Files.newBufferedReader(Paths.get(actCsvLocation));
+		CSVReader csvReaderAct = new CSVReader(readerAct);
+		String[] headerAct = csvReaderAct.readNext();
+		Reader readerCase = Files.newBufferedReader(Paths.get(caseCsvLocation));
+		CSVReader csvReaderCase = new CSVReader(readerCase);
+		String[] headerCase = csvReaderCase.readNext();
+		String[] header = new String[headerAct.length + headerCase.length-1];
+		int headerIndex = 0;
+		for (int i = 0; i < headerAct.length; i++) {
+			header[headerIndex] = headerAct[i];
+			headerIndex++;
+		}
+		for (int i = 0; i < headerCase.length; i++) {
+			if (!headerCase[i].equals(caseColName)) {
+				header[headerIndex] = headerCase[i];
+				headerIndex++;
+			}
+		}
+		
+		
+		for (int i = 0; i < headerAct.length; i++) {
+			if (headerAct[i].equals(actColName)) {
+				colIndex = i;
+			}
+		}
+		
+		File tempFile = File.createTempFile("merge_csv", ".csv");
+		FileWriter outputFile = new FileWriter(tempFile);
+		CSVWriter writer = new CSVWriter(outputFile);
+		writer.writeNext(header);
+		String[] next;
+		while ((next = csvReaderAct.readNext()) != null) {
+			String caseValue = next[colIndex];
+			String[] add = mapCaseTable.get(caseValue);
+			String[] row = new String[next.length + add.length];
+			int currIndex = 0;
+			for (int i = 0; i < next.length; i++) {
+				row[currIndex] = next[i];
+				currIndex++;
+			}
+			for (int i = 0; i < add.length; i++) {
+				row[currIndex] = add[i];
+				currIndex++;
+			}
+			writer.writeNext(row);
+		}
+		writer.close();
+		
+		return tempFile.getAbsolutePath();
+	}
 
+	public HashMap<String, String[]> getMapCaseTable(String caseTableLocation, String colName) throws IOException, CsvValidationException {
+		HashMap<String, String[]> res = new HashMap<String, String[]>();
+		
+		Reader reader = Files.newBufferedReader(Paths.get(caseTableLocation));
+		CSVReader csvReader = new CSVReader(reader);
+		String[] header = csvReader.readNext();
+		String[] next;
+		HashMap<Integer, Integer> mapHeader = new HashMap<Integer, Integer>();
+		int colIndex = 0;
+		
+		if (header.length <= 1) {
+			return res;
+		}
+		else {
+			String[] newHeader = new String[header.length - 1];
+			int index = 0;
+			for (int i = 0; i < header.length; i++) {
+				if (!header[i].equals(colName)) {
+					mapHeader.put(i, index);
+					index++;
+				}
+				else {
+					colIndex = i;
+				}
+			}
+			
+			
+			while ((next = csvReader.readNext()) != null) {
+				String[] row = new String[next.length - 1];
+				String caseCol = "";
+				for (int i = 0; i < next.length; i++) {
+					if (i == colIndex) {
+						caseCol = next[i];
+					}
+					else {
+						row[mapHeader.get(i)] = next[i];
+					}					
+					res.put(caseCol, row);
+				}
+			}
+			
+		}		
+		
+		return res;	
+	}
+	
+	public String[] getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) {
+		//res[0] = act col name, res[1] = case col name
+		String[] res = new String[2];
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		JSONObject body = new JSONObject(r.getBody());
+		JSONArray foreignKeys = body.getJSONArray("foreignKeys");
+		JSONArray tables = body.getJSONArray("tables");
+		JSONObject processConfig = new JSONObject();
+		String caseTableId = "";
+		String actTableId = "";
+		
+		for (int i = 0; i < tables.length(); i++) {
+			JSONObject table= tables.getJSONObject(i);
+			if (table.getString("name").equals(actTableName)) {
+				actTableId = table.getString("id");
+			}
+			if (table.getString("name").equals(caseTableName)) {
+				caseTableId = table.getString("id");
+			}
+		}
+		if (foreignKeys.length() > 0) {
+			for (int i = 0; i < foreignKeys.length(); i++) {
+				JSONObject obj = foreignKeys.getJSONObject(i);
+				if (obj.getString("sourceTableId").equals(actTableId) 
+						&& obj.getString("targetTableId").equals(caseTableId)) {
+					JSONObject obj1 = obj.getJSONArray("columns").getJSONObject(0);
+					res[0] = obj1.getString("sourceColumnName");
+					res[1] = obj1.getString("targetColumnName");
+				}
+			}
+		}
+		
+		return res;
+		
+	}
+	
+	public String getCaseTableName(String dpId, String dmId, String tableName) {
+		String res = "";
+		RestTemplate restTemplate = new RestTemplate();
+		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
+
+		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		JSONObject body = new JSONObject(r.getBody());
+		JSONArray processConfigs = body.getJSONArray("processConfigurations");
+		JSONArray tables = body.getJSONArray("tables");
+		JSONObject processConfig = new JSONObject();
+		String caseTableId = "";
+		String actTableId = "";
+		
+		for (int i = 0; i < tables.length(); i++) {
+			JSONObject table= tables.getJSONObject(i);
+			if (table.getString("name").equals(tableName)) {
+				actTableId = table.getString("id");
+				break;
+			}
+		}
+		for (int i = 0; i < processConfigs.length(); i++) {
+			JSONObject config = processConfigs.getJSONObject(i);
+			if (config.getString("activityTableId").equals(actTableId)) {
+				processConfig = config;
+				break;
+			}
+		}
+		
+		
+		if (processConfig.getString("caseTableId") != JSONObject.NULL) {
+			caseTableId = processConfig.getString("caseTableId");
+		}
+		
+		for (int i = 0; i < tables.length(); i++) {
+			JSONObject table= tables.getJSONObject(i);
+			if (table.getString("id").equals(caseTableId)) {
+				return table.getString("name");
+			}
+		}
+		return res;
+		
+	}
+	
 	public String getCsv(String dpId, String dmId, String tableName) throws Exception {
 		String queryId = this.getQueryId(dpId, dmId, tableName);
 		System.out.println(queryId);

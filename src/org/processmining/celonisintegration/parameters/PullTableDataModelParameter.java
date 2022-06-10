@@ -9,6 +9,7 @@ public class PullTableDataModelParameter extends PluginParametersImpl {
 	private String dataPool;
 	private String dataModel;
 	private String tableName;
+	private Boolean isMerged;
 	
 	public PullTableDataModelParameter() {
 		super();
@@ -21,6 +22,7 @@ public class PullTableDataModelParameter extends PluginParametersImpl {
 		setDataPool(parameters.getDataPool());
 		setDataModel(parameters.getDataModel());
 		setTableName(parameters.getTableName());
+		setIsMerged(parameters.getIsMerged());
 	}
 	
 	public boolean equals(Object object) {
@@ -34,11 +36,15 @@ public class PullTableDataModelParameter extends PluginParametersImpl {
 					getTableName().equals(parameters.getTableName());
 		}
 		return false;
+	}	
+
+	public Boolean getIsMerged() {
+		return isMerged;
 	}
-	
-	
-	
-	
+
+	public void setIsMerged(Boolean isMerged) {
+		this.isMerged = isMerged;
+	}
 
 	public String getUrl() {
 		return url;

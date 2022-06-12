@@ -43,7 +43,7 @@ public class PullTableDataPoolDialog extends JPanel {
 	 */
 	public PullTableDataPoolDialog(UIPluginContext context, final PullTableDataModelParameter parameters)
 			throws CsvValidationException, IOException {
-		double size[][] = { { TableLayoutConstants.FILL, 160, 160 },
+		double size[][] = { { TableLayoutConstants.FILL, TableLayoutConstants.FILL, TableLayoutConstants.FILL },
 				{ TableLayoutConstants.FILL, TableLayoutConstants.MINIMUM } };
 		setLayout(new TableLayout(size));
 		DefaultListModel<String> listTables = new DefaultListModel<String>();

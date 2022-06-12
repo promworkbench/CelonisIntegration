@@ -64,36 +64,52 @@ public class UploadEventLogAlgo {
 		String anaId = "";
 		
 		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
+			context.log("Creating data pool " + dp);
 			dataPoolId = celonis.createDataPool(dp);
+			context.log("Creating data model " + dm);
 			dataModelId = celonis.createDataModel(dm, dataPoolId);
+			context.log("Creating workspace " + ws);
 			workspaceId = celonis.createWorkspace(dataModelId, ws);
+			context.log("Creating analysis " + ana);
 			anaId = celonis.createAnalysis(workspaceId, ana);
 		}
 		
 		else if (parameters.getDataPoolStatus() == DataPoolStatus.REPLACE) {
 			dp = parameters.getDataPoolReplace();
 			String dpId = celonis.getDataPoolId(dp);
+			context.log("Deleting old data pool " + dp);
 			celonis.deleteDataPool(dpId);
+			context.log("Creating data pool " + dp);
 			dataPoolId = celonis.createDataPool(dp);
+			context.log("Creating data model " + dm);
 			dataModelId = celonis.createDataModel(dm, dataPoolId);
+			context.log("Creating workspace " + ws);
 			workspaceId = celonis.createWorkspace(dataModelId, ws);
+			context.log("Creating analysis " + ana);
 			anaId = celonis.createAnalysis(workspaceId, ana);
 		}
 		
 		else {
 			dp = parameters.getDataPoolReplace();
 			dataPoolId = celonis.getDataPoolId(dp);
-			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {						
+			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {	
+				context.log("Creating data model " + dm);
 				dataModelId = celonis.createDataModel(dm, dataPoolId);
+				context.log("Creating workspace " + ws);
 				workspaceId = celonis.createWorkspace(dataModelId, ws);
+				context.log("Creating analysis " + ana);
 				anaId = celonis.createAnalysis(workspaceId, ana);
 			}
 			else if (parameters.getDataModelStatus() == DataModelStatus.REPLACE) {
 				dm = parameters.getDataModelReplace();
 				String dmId = celonis.getDataModelId(dp, dm);
+				context.log("Deleting old data model " + dm);
 				celonis.deleteDataModel(dataPoolId, dmId);
+				context.log("Creating data model " + dm);
 				dataModelId = celonis.createDataModel(dm, dataPoolId);
+				context.log("Creating workspace " + ws);
 				workspaceId = celonis.createWorkspace(dataModelId, ws);
+				context.log("Creating analysis " + ana);
 				anaId = celonis.createAnalysis(workspaceId, ana);
 				
 			}
@@ -103,23 +119,30 @@ public class UploadEventLogAlgo {
 				if (parameters.getTableStatus() == TableStatus.REPLACE) {
 					tableName = parameters.getTableNameReplace();
 					String tableId = celonis.getDataModeTablelId(dp, dm, tableName);
+					context.log("Deleting old table " + tableName);
 					celonis.deleteDataModelTable(dataPoolId, dataModelId, tableId);
 				}
 				if (parameters.getWorkspaceStatus() == WorkspaceStatus.NEW) {
+					context.log("Creating workspace " + ws);
 					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					context.log("Creating analysis " + ana);
 					anaId = celonis.createAnalysis(workspaceId, ana);
 				}
 				else if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE) {
 					ws = parameters.getWorkspaceReplace();
 					String wsId = celonis.getWorkspaceId(ws);
+					context.log("Deleting old workspace " + ws);
 					celonis.deleteWorkspace(wsId);
+					context.log("Creating workspace " + ws);
 					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					context.log("Creating analysis " + ana);
 					anaId = celonis.createAnalysis(workspaceId, ana);
 				}
 				else {
 					ws = parameters.getWorkspaceReplace();
 					workspaceId = celonis.getWorkspaceId(ws);
 					if (parameters.getAnalysisStatus() == AnalysisStatus.NEW) {
+						context.log("Creating analysis " + ana);
 						anaId = celonis.createAnalysis(workspaceId, ana);
 					}
 					else {
@@ -169,19 +192,16 @@ public class UploadEventLogAlgo {
 		}
 
 		
-		context.log("Uploading activity table");
+		context.log("Uploading activity table of " + tableName);
 		celonis.uploadCSV(dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 100000);
 		context.getProgress().inc();
-		context.log("Uploading case table");
+		context.log("Uploading case table of " + tableName);
 		celonis.uploadCSV(dataPoolId, caseCSV.getPath(), tableName + "_CASE", timeCol, 100000);
 		context.getProgress().inc();
-		context.log("Creating data model");
-		
-		context.getProgress().inc();
-		context.log("Adding activity table to data pool");
+		context.log("Uploading activity table of " + tableName + " to data pool " + dp);
 		celonis.addTableFromPool(tableName + "_ACTIVITIES", dataPoolId, dataModelId);
 		context.getProgress().inc();
-		context.log("Adding case table to data pool");
+		context.log("Uploading case table of " + tableName + " to data pool " + dp);
 		celonis.addTableFromPool(tableName + "_CASE", dataPoolId, dataModelId);
 		context.getProgress().inc();
 		context.log("Configuring foreign keys");
@@ -193,11 +213,6 @@ public class UploadEventLogAlgo {
 		context.log("Reloading data model");
 		celonis.reloadDataModel(dataModelId, dataPoolId);
 		context.getProgress().inc();
-		context.log("Creating workspace");
-		
-		context.log("Creating analysis");
-		
-
 		actCSV.delete();
 		caseCSV.delete();
 

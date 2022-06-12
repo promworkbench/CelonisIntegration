@@ -32,18 +32,29 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
     )
 	@UITopiaVariant(affiliation = "RWTH Aachen", author = "Hieu Le", email = "hieu.le@rwth-aachen.de")
 	public CSVFile runUI(UIPluginContext context) throws Exception {
+		
+		context.getProgress().setMinimum(0);
+		context.getProgress().setMaximum(3);
+		context.getProgress().setIndeterminate(false);
 		// Get the default parameters.
 		PullTableDataModelParameter parameters = new PullTableDataModelParameter();
 	    // Get a dialog for this parameters.
 	    PullTableAccessDialog dialog1 = new PullTableAccessDialog(context, parameters);
 	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	   
+	    context.log("Getting the list of Data Model Tables");
 //	    if (result1 == InteractionResult.FINISHED) {
 //	    	
 //	    }
 	    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
+	    context.getProgress().inc();
 	    InteractionResult result2 = context.showWizard("Choose a Table", true, true, dialog2);	   
 	    if (result2 == InteractionResult.FINISHED) {
-	    	CSVFile csv = runConnections(context, parameters);	    
+	    	context.log("Extracting PQL query of the table");
+	    	CSVFile csv = runConnections(context, parameters);	 
+	    	context.getProgress().inc();
+	    	context.getFutureResult(0).setLabel(parameters.getDataPool() + " / " + 
+					parameters.getDataModel() + " / " + 
+					parameters.getTableName() + " / " + ".csv");
 		    return csv;
 	    }
 //	    PullTableDataModelDialog dialog3 = new PullTableDataModelDialog(context, parameters);

@@ -47,7 +47,7 @@ public class PullOlapTablePlugin extends PullOlapTableAlgo {
 		
 		PullOlapTableWsDialog dialog2 = new PullOlapTableWsDialog(context, parameters);
 		context.getProgress().inc();
-		InteractionResult result2 = context.showWizard("Celonis access", true, true, dialog2);
+		InteractionResult result2 = context.showWizard("Pull OLAP Table from Celonis", true, true, dialog2);
 		if (result2 == InteractionResult.FINISHED) {
 			context.log("Extracting PQL query of the table");
 			CSVFile csv = runConnections(context, parameters);

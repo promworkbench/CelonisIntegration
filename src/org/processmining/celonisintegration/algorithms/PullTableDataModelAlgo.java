@@ -2,6 +2,8 @@ package org.processmining.celonisintegration.algorithms;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.processmining.celonisintegration.parameters.PullTableDataModelParameter;
 import org.processmining.framework.plugin.PluginContext;
@@ -31,26 +33,30 @@ public class PullTableDataModelAlgo {
 		String token = parameters.getToken();
 	    String dataPool = parameters.getDataPool();
 	    String dataModel = parameters.getDataModel();
-	    System.out.println(dataModel);
 	    String tableName = parameters.getTableName();
 	    Boolean isMerged = parameters.getIsMerged();
 	    
 	    DataIntegration di = new DataIntegration(url, token);
 	    String dpId = di.getDataPoolId(dataPool);
 	    String dmId = di.getDataModelId(dataPool, dataModel);
-	    String fileLocation = di.getCsv(dpId, dmId, tableName);
+	    String fileLocation = "";
 	    
 	    if (isMerged) {
 	    	String caseTableName = di.getCaseTableName(dpId, dmId, tableName);
-	    	String caseCsvLocation = di.getCsv(dpId, dmId, caseTableName);
-	    	String[] colName = di.getForeignKey(dpId, dmId, tableName, caseTableName);
-	    	String mergedCsv = di.mergeCsv(fileLocation, caseCsvLocation, colName[0], colName[1]);
-	    	fileLocation = mergedCsv;
+	    	if (!caseTableName.equals("")) {	    		
+		    	List<String[]> keyCol = di.getForeignKey(dpId, dmId, tableName, caseTableName);
+		    	List<String> keyCaseCol = new ArrayList<String>();
+		    	for (String[] str: keyCol) {
+		    		keyCaseCol.add(str[1]);
+		    	}
+		    	
+		    	fileLocation = di.getCsv(context, dpId, dmId, tableName, true, caseTableName, keyCaseCol);
+	    	}  	
 	    	
+	    }	
+	    else {
+	    	fileLocation = di.getCsv(context, dpId, dmId, tableName, false, "", null);
 	    }
-	    
-	   
-	    
 	    
 	    Path filePath = Paths.get(fileLocation);
 	    String fileName = filePath.getFileName().toString();	

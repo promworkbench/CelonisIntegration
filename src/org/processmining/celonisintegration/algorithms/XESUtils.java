@@ -201,7 +201,7 @@ public class XESUtils {
 		CSVWriter writer = new CSVWriter(outputFile);
 		String[] content1 = content.split("\\n");
 		for (int i = 0; i < content1.length; i++) {
-			String[] row = content1[i].split(",");
+			String[] row = content1[i].replaceAll("\"", "").split(",");
 			writer.writeNext(row);
 		}
 		writer.close();

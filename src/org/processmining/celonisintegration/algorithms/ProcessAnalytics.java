@@ -90,7 +90,7 @@ public class ProcessAnalytics {
 			JSONObject ws = body.getJSONObject(i);
 			String name = ws.getString("name");
 			String id = ws.getString("id");
-			String dmId = ws.getString("dmId");
+			String dmId = ws.getString("dataModelId");
 			this.workspaces.add(new CelonisObject().new Workspace(name, id, dmId));
 		}
 	}

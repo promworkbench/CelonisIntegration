@@ -510,7 +510,6 @@ public class UploadEventLogDialog extends JPanel {
 				tableNames = new ArrayList<String>();
 				updateTable(di);
 				wsNames = new ArrayList<String>();
-				System.out.println("Update dm");
 				updateWorkspace(di);
 				tableCombo.removeAllItems();
 				tableCombo.addAllItems(tableNames);
@@ -889,15 +888,20 @@ public class UploadEventLogDialog extends JPanel {
 
 			}
 		});
-
+		JLabel caseNewName = new JLabel("New name");
+		JLabel actNewName = new JLabel("New name");
+		JLabel timeNewName = new JLabel("New name");
 		add(caseId, "4, " + Integer.toString(rowTable - 1));
 		add(caseCombo, "4, " + Integer.toString(rowTable));
+		add(caseNewName, "5, " + Integer.toString(rowTable - 1));
 		add(caseField, "5, " + Integer.toString(rowTable));
 		add(act, "4, " + Integer.toString(rowTable + 1));
 		add(actCombo, "4, " + Integer.toString(rowTable + 2));
+		add(actNewName, "5, " + Integer.toString(rowTable + 1));
 		add(actField, "5, " + Integer.toString(rowTable + 2));
 		add(timestamp, "4, " + Integer.toString(rowTable + 3));
 		add(timeCombo, "4, " + Integer.toString(rowTable + 4));
+		add(timeNewName, "5, " + Integer.toString(rowTable + 3));
 		add(timeField, "5, " + Integer.toString(rowTable + 4));
 
 	}

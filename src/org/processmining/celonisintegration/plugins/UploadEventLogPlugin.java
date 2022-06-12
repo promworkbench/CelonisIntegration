@@ -39,61 +39,19 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 		context.getProgress().setMaximum(10);
 		context.getProgress().setIndeterminate(false);
 
-		context.log("Converting to CSV");
+		context.log("Converting the event log to CSV");
 		File actCsv = XESUtils.createActCSV(log, "case-", 0);
-		System.out.println("done transfering file");
 		context.getProgress().inc();
 		parameters.setActCSV(actCsv);
-		context.log("done getting param12");
 		UploadEventLogAccessDialog dialog = new UploadEventLogAccessDialog(context, parameters);
 		InteractionResult result = context.showWizard("Celonis access", true, true, dialog);
 		if (result == InteractionResult.FINISHED) {
-			context.log("getting information about the workspaces, analyses, data pools, data models");
+			context.log("Getting information about the workspaces, analyses, data pools, data models, tables");
 			DataIntegration di = new DataIntegration(parameters.getUrl(), parameters.getToken());
 			UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters, log, di);
-			InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
-			if (result1 == InteractionResult.FINISHED) {
-				context.log("done getting param");
-				// check empty input			
-//				if (parameters.getTableName() == null ) {
-//					throw new Exception("Table name can not be empty");
-//				}
-//				else if (parameters.getTableName().replaceAll("\\s+", "") == "") {
-//					throw new Exception("Table name can not be empty");
-//				}
-//				
-//				if (parameters.getDataPool() == null ) {
-//					throw new Exception("Data pool name can not be empty");
-//				}
-//				else if (parameters.getDataPool().replaceAll("\\s+", "") == "") {
-//					throw new Exception("Data pool name can not be empty");
-//				}
-//				
-//				if (parameters.getDataModel() == null ) {
-//					throw new Exception("Data model name can not be empty");
-//				}
-//				else if (parameters.getDataModel().replaceAll("\\s+", "") == "") {
-//					throw new Exception("Data model name can not be empty");
-//				}
-//				
-//				if (parameters.getWorkspace() == null ) {
-//					throw new Exception("Workspace name can not be empty");
-//				}
-//				else if (parameters.getWorkspace().replaceAll("\\s+", "") == "") {
-//					throw new Exception("Workspace name can not be empty");
-//				}
-//				
-//				if (parameters.getAnalysis() == null ) {
-//					throw new Exception("Analysis name can not be empty");
-//				}
-//				else if (parameters.getAnalysis().replaceAll("\\s+", "") == "") {
-//					throw new Exception("Analysis name can not be empty");
-//				}
-
-				
-				// check logic
-				// check workspace
-				
+			InteractionResult result1 = context.showWizard("Upload event log to Celonis", true, true, dialog1);
+			if (result1 == InteractionResult.FINISHED) {			
+				context.log("Getting the parameters");
 				runConnections(context, log, parameters);
 				context.getProgress().inc();
 				return log;
@@ -109,7 +67,6 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 
 	private void runConnections(PluginContext context, XLog log, UploadEventLogParameter parameters) throws Exception {
 		// No connection found. Apply the algorithm to compute a fresh output result.
-		context.log("getting in");
 		apply(context, log, parameters);
 
 	}

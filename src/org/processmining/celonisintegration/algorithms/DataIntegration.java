@@ -5,11 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +24,7 @@ import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTa
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
 import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
+import org.processmining.framework.plugin.PluginContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -250,28 +247,38 @@ public class DataIntegration {
 				String name = obj.getString("name");
 				String id = obj.getString("id");
 				JSONArray tablesJSON = obj.getJSONArray("tables");
-				String actTableId = "";
-				String caseTableId = "";
+				List<String> actTableId = new ArrayList<String>();
+				List<String> caseTableId = new ArrayList<String>();
 				if (obj.getJSONArray("processConfigurations").length() > 0) {
-					if (obj.getJSONArray("processConfigurations").getJSONObject(0).has("activityTableId")) {
-						actTableId = obj.getJSONArray("processConfigurations").getJSONObject(0).getString("activityTableId");
+					for (int j = 0; j < obj.getJSONArray("processConfigurations").length(); j++) {
+						JSONObject processConfig = obj.getJSONArray("processConfigurations").getJSONObject(j);
+						if (processConfig.has("activityTableId")) {
+							if (processConfig.get("activityTableId") != JSONObject.NULL) {
+								actTableId.add(processConfig.getString("activityTableId"));
+							}
+							
+						}
+						
+						if (processConfig.has("caseTableId")) {
+							if (processConfig.get("caseTableId") != JSONObject.NULL) {
+								caseTableId.add(processConfig.getString("caseTableId"));
+							}
+							
+						}
 					}
 					
-					if (obj.getJSONArray("processConfigurations").getJSONObject(0).has("caseTableId")) {
-						caseTableId = obj.getJSONArray("processConfigurations").getJSONObject(0).getString("activityTableId");
-					}
 				}
 				
 				List<DataModelTable> tables = new ArrayList<DataModelTable>();
 
 				for (int j = 0; j < tablesJSON.length(); j++) {
-					String nameTable = tablesJSON.getJSONObject(j).getString("name");
+					String nameTable = tablesJSON.getJSONObject(j).getString("aliasOrName");
 					String idTable = tablesJSON.getJSONObject(j).getString("id");
 					DataModelTableType tableType = DataModelTableType.NORMAL;
-					if (idTable.equals(actTableId)) {
+					if (actTableId.contains(idTable)) {
 						tableType = DataModelTableType.ACTIVITY;
 					}
-					else if (idTable.equals(caseTableId)) {
+					else if (caseTableId.contains(idTable)) {
 						tableType = DataModelTableType.CASE;
 					}
 					tables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
@@ -281,112 +288,11 @@ public class DataIntegration {
 			}
 		}
 
-	}
+	}	
 	
-	public String mergeCsv(String actCsvLocation, String caseCsvLocation, String actColName, String caseColName) throws CsvValidationException, IOException {
-		HashMap<String, String[]> mapCaseTable = this.getMapCaseTable(caseCsvLocation, caseColName);
-		int colIndex = 0;
-		
-		Reader readerAct = Files.newBufferedReader(Paths.get(actCsvLocation));
-		CSVReader csvReaderAct = new CSVReader(readerAct);
-		String[] headerAct = csvReaderAct.readNext();
-		Reader readerCase = Files.newBufferedReader(Paths.get(caseCsvLocation));
-		CSVReader csvReaderCase = new CSVReader(readerCase);
-		String[] headerCase = csvReaderCase.readNext();
-		String[] header = new String[headerAct.length + headerCase.length-1];
-		int headerIndex = 0;
-		for (int i = 0; i < headerAct.length; i++) {
-			header[headerIndex] = headerAct[i];
-			headerIndex++;
-		}
-		for (int i = 0; i < headerCase.length; i++) {
-			if (!headerCase[i].equals(caseColName)) {
-				header[headerIndex] = headerCase[i];
-				headerIndex++;
-			}
-		}
-		
-		
-		for (int i = 0; i < headerAct.length; i++) {
-			if (headerAct[i].equals(actColName)) {
-				colIndex = i;
-			}
-		}
-		
-		File tempFile = File.createTempFile("merge_csv", ".csv");
-		FileWriter outputFile = new FileWriter(tempFile);
-		CSVWriter writer = new CSVWriter(outputFile);
-		writer.writeNext(header);
-		String[] next;
-		while ((next = csvReaderAct.readNext()) != null) {
-			String caseValue = next[colIndex];
-			String[] add = mapCaseTable.get(caseValue);
-			String[] row = new String[next.length + add.length];
-			int currIndex = 0;
-			for (int i = 0; i < next.length; i++) {
-				row[currIndex] = next[i];
-				currIndex++;
-			}
-			for (int i = 0; i < add.length; i++) {
-				row[currIndex] = add[i];
-				currIndex++;
-			}
-			writer.writeNext(row);
-		}
-		writer.close();
-		
-		return tempFile.getAbsolutePath();
-	}
-
-	public HashMap<String, String[]> getMapCaseTable(String caseTableLocation, String colName) throws IOException, CsvValidationException {
-		HashMap<String, String[]> res = new HashMap<String, String[]>();
-		
-		Reader reader = Files.newBufferedReader(Paths.get(caseTableLocation));
-		CSVReader csvReader = new CSVReader(reader);
-		String[] header = csvReader.readNext();
-		String[] next;
-		HashMap<Integer, Integer> mapHeader = new HashMap<Integer, Integer>();
-		int colIndex = 0;
-		
-		if (header.length <= 1) {
-			return res;
-		}
-		else {
-			String[] newHeader = new String[header.length - 1];
-			int index = 0;
-			for (int i = 0; i < header.length; i++) {
-				if (!header[i].equals(colName)) {
-					mapHeader.put(i, index);
-					index++;
-				}
-				else {
-					colIndex = i;
-				}
-			}
-			
-			
-			while ((next = csvReader.readNext()) != null) {
-				String[] row = new String[next.length - 1];
-				String caseCol = "";
-				for (int i = 0; i < next.length; i++) {
-					if (i == colIndex) {
-						caseCol = next[i];
-					}
-					else {
-						row[mapHeader.get(i)] = next[i];
-					}					
-					res.put(caseCol, row);
-				}
-			}
-			
-		}		
-		
-		return res;	
-	}
-	
-	public String[] getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) {
+	public List<String[]> getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) {
 		//res[0] = act col name, res[1] = case col name
-		String[] res = new String[2];
+		List<String[]> res = new ArrayList<String[]>();
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
@@ -405,21 +311,44 @@ public class DataIntegration {
 		
 		for (int i = 0; i < tables.length(); i++) {
 			JSONObject table= tables.getJSONObject(i);
-			if (table.getString("name").equals(actTableName)) {
+			if (table.getString("aliasOrName").equals(actTableName)) {
 				actTableId = table.getString("id");
 			}
-			if (table.getString("name").equals(caseTableName)) {
+			if (table.getString("aliasOrName").equals(caseTableName)) {
 				caseTableId = table.getString("id");
 			}
 		}
+		
 		if (foreignKeys.length() > 0) {
 			for (int i = 0; i < foreignKeys.length(); i++) {
 				JSONObject obj = foreignKeys.getJSONObject(i);
 				if (obj.getString("sourceTableId").equals(actTableId) 
 						&& obj.getString("targetTableId").equals(caseTableId)) {
-					JSONObject obj1 = obj.getJSONArray("columns").getJSONObject(0);
-					res[0] = obj1.getString("sourceColumnName");
-					res[1] = obj1.getString("targetColumnName");
+					JSONArray colsJson = obj.getJSONArray("columns");
+					
+					for (int j = 0; j < colsJson.length(); j++){
+						String[] cols = new String[2];
+						JSONObject obj1 = colsJson.getJSONObject(j);
+						cols[0] = obj1.getString("sourceColumnName");
+						cols[1] = obj1.getString("targetColumnName");
+						res.add(cols);
+					}
+					
+				}
+				else if (obj.getString("targetTableId").equals(actTableId) 
+						&& obj.getString("sourceTableId").equals(caseTableId)) {
+					JSONArray colsJson = obj.getJSONArray("columns");
+					
+					for (int j = 0; j < colsJson.length(); j++){
+						String[] cols = new String[2];
+						JSONObject obj1 = colsJson.getJSONObject(j);
+						cols[1] = obj1.getString("sourceColumnName");
+						cols[0] = obj1.getString("targetColumnName");
+						System.out.println(cols[0]);
+						System.out.println(cols[1]);
+						res.add(cols);
+					}
+					
 				}
 			}
 		}
@@ -448,7 +377,7 @@ public class DataIntegration {
 		
 		for (int i = 0; i < tables.length(); i++) {
 			JSONObject table= tables.getJSONObject(i);
-			if (table.getString("name").equals(tableName)) {
+			if (table.getString("aliasOrName").equals(tableName)) {
 				actTableId = table.getString("id");
 				break;
 			}
@@ -469,17 +398,17 @@ public class DataIntegration {
 		for (int i = 0; i < tables.length(); i++) {
 			JSONObject table= tables.getJSONObject(i);
 			if (table.getString("id").equals(caseTableId)) {
-				return table.getString("name");
+				return table.getString("aliasOrName");
 			}
 		}
 		return res;
 		
 	}
 	
-	public String getCsv(String dpId, String dmId, String tableName) throws Exception {
-		String queryId = this.getQueryId(dpId, dmId, tableName);
-		System.out.println(queryId);
-		System.out.println("quering");
+	public String getCsv(PluginContext context, String dpId, String dmId, String tableName, 
+			Boolean isMerged, String caseTable, List<String> keyCaseCol) throws Exception {
+		context.log("Sending query for the table");
+		String queryId = this.getQueryId(dpId, dmId, tableName, isMerged, caseTable, keyCaseCol);
 		String status = "";
 		int delay = 0;
 		while (true) {
@@ -490,9 +419,9 @@ public class DataIntegration {
 			}
 			TimeUnit.SECONDS.sleep(2);
 		}
-		System.out.println("done quering");
+		context.getProgress().inc();
+		context.log("Sending request");
 		if (status.equals("FAILED")) {
-
 			throw new Exception(this.getExportMessage(dmId, queryId));
 		}
 		if (delay == 60) {
@@ -506,11 +435,11 @@ public class DataIntegration {
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
-		System.out.println("finish requesting");
+		context.getProgress().inc();
+		context.log("Downloading the table");
 		String log = response.getBody();
 		File tempFile = File.createTempFile("event_log_celonis_" + tableName, ".csv");
 		XESUtils.writeToCsv(log, tempFile);
-		System.out.println("finish writing");
 		return tempFile.getAbsolutePath().toString();
 	}
 
@@ -542,8 +471,14 @@ public class DataIntegration {
 		return body.getString("exportStatus");
 	}
 
-	public String getQueryId(String dpId, String dmId, String tableName) {
-		String query = this.getPullingQuery(dpId, dmId, tableName);
+	public String getQueryId(String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) {
+		String query = "";
+		if (isMerged) {
+			query = this.getMergePullingQuery(dpId, dmId, tableName, caseTable, keyCaseCol);
+		}
+		else {
+			query = this.getPullingQuery(dpId, dmId, tableName);
+		}
 		String targetUrl = this.url + "/integration/api/v1/compute/" + dmId + "/export/query";
 		String payload = this.getPullingPayload(query);
 		HttpHeaders headers = new HttpHeaders();
@@ -599,6 +534,66 @@ public class DataIntegration {
 		return res;
 	}
 
+	public String getMergePullingQuery(String dpId, String dmId, String actTable, String caseTable, List<String> keyCaseCol) {
+		String res = "TABLE( ";
+		String tableId = this.getTableByName(actTable, dmId, dpId);
+		String caseTableId = this.getTableByName(caseTable, dmId, dpId);
+		
+		List<String> actCols = getColumns(dpId, dmId, tableId);
+		List<String> caseCols = getColumns(dpId, dmId, caseTableId);
+		String q = "";
+		for (int i = 0; i < actCols.size(); i++) {
+			String col = actCols.get(i);
+			q += "\"";
+			q += actTable;
+			q += "\"";
+			q += ".";
+			q += "\"";
+			q += col;
+			q += "\"";
+			q += " AS ";
+			q += "\"";
+			q += col;
+			q += "\"";
+			if (i != actCols.size() - 1) {
+				q += ", ";
+			}
+			else {
+				if (caseCols.size() != 0) {
+					q += ", ";
+				}
+			}
+		}
+		for (int i = 0; i < caseCols.size(); i++) {
+			String col = caseCols.get(i);
+			System.out.println(col);
+			if (!keyCaseCol.contains(col)) {
+				System.out.println("### inside ###");
+				System.out.println(col);
+				q += "\"";
+				q += caseTable;
+				q += "\"";
+				q += ".";
+				q += "\"";
+				q += col;
+				q += "\"";
+				q += " AS ";
+				q += "\"";
+				q += col;
+				q += "\"";
+				if (i != caseCols.size() - 1) {
+					q += ", ";
+				}
+			}			
+			
+		}
+
+		res += q;
+		res += ") NOLIMIT;";
+		System.out.println(res);
+		return res;
+	}
+	
 	public List<String> getColumns(String dpId, String dmId, String tableId) {
 		List<String> res = new ArrayList<String>();
 
@@ -620,53 +615,6 @@ public class DataIntegration {
 		}
 		return res;
 	}
-
-//	public String getDataModelIdByName(String dmName, String dpId) {
-//		String res = "";
-//		RestTemplate restTemplate = new RestTemplate();
-//		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
-//		HttpHeaders headers = new HttpHeaders();
-//		headers.add("Authorization", "Bearer " + this.apiToken);
-//		headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-//
-//		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-//		JSONArray body = new JSONArray(r.getBody());
-//		for (int i = 0; i < body.length(); i++) {
-//			JSONObject obj = body.getJSONObject(i);
-//			if (obj.getString("name").equals(dmName)) {
-//				res = obj.getString("id");
-//			}
-//		}
-//		return res;
-//	}
-
-	//	public String getDataPoolIdByName(String name) {
-	//		String res = "";
-	//		RestTemplate restTemplate = new RestTemplate();
-	//		String targetUrl = String.format(this.url + "/integration/api/pools");
-	//		HttpHeaders headers = new HttpHeaders();
-	//		headers.add("Authorization", "Bearer " + this.apiToken);
-	//		headers.setContentType(MediaType.APPLICATION_JSON);
-	//
-	//		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-	//
-	//		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
-	//		JSONArray body = new JSONArray(r.getBody());
-	//
-	//		for (int i = 0; i < body.length(); i++) {
-	//			JSONObject obj = body.getJSONObject(i);
-	//			if (obj.getString("name").equals(name)) {
-	//				res = obj.getString("id");
-	//			}
-	//		}
-	//		return res;
-	//	}
-
-	
-	
-	
 	
 	public void deleteDataPool(String dpId) {
 		RestTemplate restTemplate = new RestTemplate();
@@ -692,7 +640,7 @@ public class DataIntegration {
 	
 	public void deleteDataModelTable(String dpId, String dmId, String tableId) {
 		RestTemplate restTemplate = new RestTemplate();
-		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId + "/tables/" + tableId;
+		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables/" + tableId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);

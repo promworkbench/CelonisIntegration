@@ -1,9 +1,11 @@
 package org.processmining.celonisintegration.plugins;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
+import org.processmining.celonisintegration.algorithms.ErrorUtils;
 import org.processmining.celonisintegration.algorithms.PullBpmnAlgo;
 import org.processmining.celonisintegration.dialogs.PullBpmnAccessDialog;
 import org.processmining.celonisintegration.dialogs.PullBpmnDialog;
+import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.PullBpmnParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
@@ -27,7 +29,8 @@ public class PullBpmnPlugin extends PullBpmnAlgo {
             name = "Pull BPMN from Celonis Process Repository", 
             parameterLabels = {}, 
             returnLabels = { "BPMN diagram" }, 
-            returnTypes = { BPMNDiagram.class }
+            returnTypes = { BPMNDiagram.class },
+            help = YourHelp.PULL_BPMN
     
     )
 	@UITopiaVariant(affiliation = "RWTH Aachen", author = "Hieu Le", email = "hieu.le@rwth-aachen.de")
@@ -41,18 +44,30 @@ public class PullBpmnPlugin extends PullBpmnAlgo {
 	    // Get a dialog for this parameters.
 	    PullBpmnAccessDialog dialog1 = new PullBpmnAccessDialog(context, parameters);
 	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
-	    
-	    context.log("Getting the list of BPMN models");
-	    PullBpmnDialog dialog2 = new PullBpmnDialog(context, parameters);
-	    context.getProgress().inc();
-	    InteractionResult result2 = context.showWizard("Choose a Model", true, true, dialog2);
-	    if (result2 == InteractionResult.FINISHED) {
-	    	context.log("Sending query");
-	    	BPMNDiagram bpmn = runConnections(context, parameters);	   
-	    	context.getProgress().inc();
-		    return bpmn;
+	    if (result1 == InteractionResult.FINISHED) {
+	    	ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+	    	context.log("Getting the list of BPMN models");
+		    PullBpmnDialog dialog2 = new PullBpmnDialog(context, parameters);
+		    context.getProgress().inc();
+		    InteractionResult result2 = context.showWizard("Choose a Model", true, true, dialog2);
+		    if (result2 == InteractionResult.FINISHED) {
+		    	context.log("Sending query");
+		    	BPMNDiagram bpmn = runConnections(context, parameters);	   
+		    	context.getProgress().inc();
+			    return bpmn;
+		    }
+		    else {
+		    	context.getFutureResult(0).cancel(true);
+			    return null;
+		    }
 	    }
-	    return null;
+	    else {
+	    	context.getFutureResult(0).cancel(true);
+		    return null;
+	    }
+	    
+	    
+	    
 	}	
 	
 

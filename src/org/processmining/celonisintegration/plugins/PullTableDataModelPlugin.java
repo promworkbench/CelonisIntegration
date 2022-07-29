@@ -2,9 +2,11 @@ package org.processmining.celonisintegration.plugins;
 
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
+import org.processmining.celonisintegration.algorithms.ErrorUtils;
 import org.processmining.celonisintegration.algorithms.PullTableDataModelAlgo;
 import org.processmining.celonisintegration.dialogs.PullTableAccessDialog;
 import org.processmining.celonisintegration.dialogs.PullTableDataPoolDialog;
+import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.PullTableDataModelParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
@@ -27,7 +29,8 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
             name = "Pull Table from Celonis Data Model", 
             parameterLabels = {}, 
             returnLabels = { "CSV File" }, 
-            returnTypes = { CSVFile.class }
+            returnTypes = { CSVFile.class },
+            help = YourHelp.PULL_TABLE
     
     )
 	@UITopiaVariant(affiliation = "RWTH Aachen", author = "Hieu Le", email = "hieu.le@rwth-aachen.de")
@@ -40,25 +43,32 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
 		PullTableDataModelParameter parameters = new PullTableDataModelParameter();
 	    // Get a dialog for this parameters.
 	    PullTableAccessDialog dialog1 = new PullTableAccessDialog(context, parameters);
-	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	   
-	    context.log("Getting the list of Data Model Tables");
-//	    if (result1 == InteractionResult.FINISHED) {
-//	    	
-//	    }
-	    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
-	    context.getProgress().inc();
-	    InteractionResult result2 = context.showWizard("Choose a Table", true, true, dialog2);	   
-	    if (result2 == InteractionResult.FINISHED) {
-	    	context.log("Extracting PQL query of the table");
-	    	CSVFile csv = runConnections(context, parameters);	 
-	    	context.getProgress().inc();
-	    	context.getFutureResult(0).setLabel(parameters.getDataPool() + " / " + 
-					parameters.getDataModel() + " / " + 
-					parameters.getTableName() + " / " + ".csv");
-		    return csv;
+	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	  
+	    if (result1 == InteractionResult.FINISHED) {
+	    	ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+	    	context.log("Getting the list of Data Model Tables");
+		    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
+		    context.getProgress().inc();
+		    InteractionResult result2 = context.showWizard("Choose a Table", true, true, dialog2);	   
+		    if (result2 == InteractionResult.FINISHED) {
+		    	context.log("Extracting PQL query of the table");
+		    	CSVFile csv = runConnections(context, parameters);	 
+		    	context.getProgress().inc();
+		    	context.getFutureResult(0).setLabel(parameters.getDataPool() + " / " + 
+						parameters.getDataModel() + " / " + 
+						parameters.getTableName() + " / " + ".csv");
+			    return csv;
+		    }
+		    else {
+		    	context.getFutureResult(0).cancel(true);
+			    return null;
+		    }
 	    }
-//	    PullTableDataModelDialog dialog3 = new PullTableDataModelDialog(context, parameters);
-	    return null;
+	    else {
+	    	context.getFutureResult(0).cancel(true);
+		    return null;
+	    }
+	    
 	}	
 	
 

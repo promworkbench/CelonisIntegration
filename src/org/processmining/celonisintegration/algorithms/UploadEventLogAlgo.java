@@ -48,11 +48,13 @@ public class UploadEventLogAlgo {
 		String dm = parameters.getDataModel();
 		String tableName = parameters.getTableName();
 		String ws = parameters.getWorkspace();
+		String ana = parameters.getAnalysis();
+		
 		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE 
 				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
 			ws = parameters.getWorkspaceReplace();
 		}
-		String ana = parameters.getAnalysis();
+		
 		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE 
 				||parameters.getAnalysisStatus() == AnalysisStatus.ADD) {
 			ana = parameters.getAnalysisReplace();

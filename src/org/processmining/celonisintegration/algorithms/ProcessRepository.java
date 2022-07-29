@@ -41,6 +41,7 @@ public class ProcessRepository {
         
         HttpEntity<String> getRequest = new HttpEntity<String>(headers);    
         RestTemplate restTemplate = new RestTemplate();
+//        restTemplate.setErrorHandler(new APIErrorHandler());
         ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);   
         JSONArray body = new JSONArray(response.getBody());
         for (int i = 0; i < body.length(); i++) {

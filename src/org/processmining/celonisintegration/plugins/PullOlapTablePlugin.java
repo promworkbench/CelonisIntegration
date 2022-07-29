@@ -1,9 +1,11 @@
 package org.processmining.celonisintegration.plugins;
 
 import org.deckfour.uitopia.api.event.TaskListener.InteractionResult;
+import org.processmining.celonisintegration.algorithms.ErrorUtils;
 import org.processmining.celonisintegration.algorithms.PullOlapTableAlgo;
 import org.processmining.celonisintegration.dialogs.PullOlapTableAccessDialog;
 import org.processmining.celonisintegration.dialogs.PullOlapTableWsDialog;
+import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.PullOlapTableParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.contexts.uitopia.annotations.UITopiaVariant;
@@ -25,7 +27,7 @@ public class PullOlapTablePlugin extends PullOlapTableAlgo {
 	 * @throws Exception
 	 */
 	@Plugin(name = "Pull OLAP Table from Celonis Analysis", parameterLabels = {}, returnLabels = {
-			"CSV File" }, returnTypes = { CSVFile.class }
+			"CSV File" }, returnTypes = { CSVFile.class }, help = YourHelp.PULL_OLAP
 
 	)
 	@UITopiaVariant(affiliation = "RWTH Aachen", author = "Hieu Le", email = "hieu.le@rwth-aachen.de")
@@ -35,31 +37,35 @@ public class PullOlapTablePlugin extends PullOlapTableAlgo {
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(4);
 		context.getProgress().setIndeterminate(false);
-		
+
 		PullOlapTableParameter parameters = new PullOlapTableParameter();
 		// Get a dialog for this parameters.
 		PullOlapTableAccessDialog dialog1 = new PullOlapTableAccessDialog(context, parameters);
 		InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
 		if (result1 == InteractionResult.FINISHED) {
-			String r = "";
-		}
-		context.log("Getting the list of OLAP Tables");
-		
-		PullOlapTableWsDialog dialog2 = new PullOlapTableWsDialog(context, parameters);
-		context.getProgress().inc();
-		InteractionResult result2 = context.showWizard("Pull OLAP Table from Celonis", true, true, dialog2);
-		if (result2 == InteractionResult.FINISHED) {
-			context.log("Extracting PQL query of the table");
-			CSVFile csv = runConnections(context, parameters);
+			ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+			context.log("Getting the list of OLAP Tables");
+
+			PullOlapTableWsDialog dialog2 = new PullOlapTableWsDialog(context, parameters);
 			context.getProgress().inc();
-			context.getFutureResult(0).setLabel(parameters.getWorkspaceName() + " / " + 
-												parameters.getAnalysisName() + " / " + 
-												parameters.getSheetName() + " / " +
-												parameters.getTableName() + ".csv");
-			return csv;
+			InteractionResult result2 = context.showWizard("Pull OLAP Table from Celonis", true, true, dialog2);
+			if (result2 == InteractionResult.FINISHED) {
+				context.log("Extracting PQL query of the table");
+				CSVFile csv = runConnections(context, parameters);
+				context.getProgress().inc();
+				context.getFutureResult(0).setLabel(parameters.getWorkspaceName() + " / " + parameters.getAnalysisName()
+						+ " / " + parameters.getSheetName() + " / " + parameters.getTableName() + ".csv");
+				return csv;
+			} else {
+				context.getFutureResult(0).cancel(true);
+				return null;
+			}
+
+		} else {
+			context.getFutureResult(0).cancel(true);
+			return null;
 		}
 
-		return null;
 	}
 
 	private CSVFile runConnections(PluginContext context, PullOlapTableParameter parameters) throws Exception {

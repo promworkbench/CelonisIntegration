@@ -71,7 +71,12 @@ public class CacheUtils {
         	return nextLine[0];
         }
         if (obj.equals("Token")) {
-        	return nextLine[1];
+        	if (nextLine.length == 1) {
+        		return "";
+        	}
+        	else {
+        		return nextLine[1];
+        	}
         }
 		return "";
 	}

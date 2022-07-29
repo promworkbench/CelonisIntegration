@@ -15,6 +15,7 @@ import javax.swing.JTable;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.model.XLog;
 import org.processmining.celonisintegration.algorithms.CelonisObject;
 import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
@@ -67,6 +68,7 @@ public class UploadEventLogDialog extends JPanel {
 	public UploadEventLogDialog(UIPluginContext context, final UploadEventLogParameter parameters, XLog log,
 			DataIntegration di) throws Exception {
 		//Celonis info
+		String logName = XConceptExtension.instance().extractName(log) != null ? XConceptExtension.instance().extractName(log) : "Anonymous";
 		int rowsNum = 40;
 		int rowTable = 2;
 		double[] rows = new double[rowsNum];
@@ -79,6 +81,8 @@ public class UploadEventLogDialog extends JPanel {
 		//		double size[][] = { {  TableLayoutConstants.FILL,  TableLayoutConstants.FILL, TableLayoutConstants.FILL,  TableLayoutConstants.FILL }, rows };
 		double size[][] = { { 180, 60, 90, 60, 180, 190}, rows };
 		setLayout(new TableLayout(size));
+		
+		
 		dataPoolNames = new ArrayList<String>();
 		dataModelNames = new ArrayList<String>();
 		tableNames = new ArrayList<String>();
@@ -90,10 +94,7 @@ public class UploadEventLogDialog extends JPanel {
 		currentWorkspaceId = "";
 		currentDataModel = new CelonisObject().new DataModel();
 		currentWorkspace = new CelonisObject().new Workspace();
-
-//		for (DataPool dp : di.getDataPools()) {
-//			dataPoolNames.add(dp.getName());
-//		}
+		
 		updateDataPool(di);
 		if (dataPoolNames.size() > 0) {
 			currentDataPool = dataPoolNames.get(0);
@@ -159,7 +160,7 @@ public class UploadEventLogDialog extends JPanel {
 			}
 		});
 
-		ProMTextField anaField = new ProMTextField("_ANALYSIS");
+		ProMTextField anaField = new ProMTextField("_ANALYSIS_" + logName);
 		parameters.setAnalysis(anaField.getText());
 		parameters.setAnalysisStatus(AnalysisStatus.NEW);
 		anaField.getDocument().addDocumentListener(new DocumentListener() {
@@ -277,7 +278,7 @@ public class UploadEventLogDialog extends JPanel {
 			}
 		});
 
-		ProMTextField wsField = new ProMTextField("_WORKSPACE");
+		ProMTextField wsField = new ProMTextField("_WORKSPACE_" + logName);
 		parameters.setWorkspace(wsField.getText());
 		wsField.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
@@ -349,7 +350,7 @@ public class UploadEventLogDialog extends JPanel {
 			}
 		});
 
-		ProMTextField tableField = new ProMTextField("Table");
+		ProMTextField tableField = new ProMTextField("_TABLE_" + logName);
 		parameters.setTableName(tableField.getText());
 		parameters.setTableStatus(TableStatus.NEW);
 		tableField.getDocument().addDocumentListener(new DocumentListener() {
@@ -518,7 +519,7 @@ public class UploadEventLogDialog extends JPanel {
 			}
 		});
 
-		ProMTextField dmField = new ProMTextField("_DATAMODEL");
+		ProMTextField dmField = new ProMTextField("_DATAMODEL_" + logName);
 		parameters.setDataModel(dmField.getText());
 		dmField.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
@@ -725,7 +726,7 @@ public class UploadEventLogDialog extends JPanel {
 			}
 		});
 
-		ProMTextField dpField = new ProMTextField("_DATAPOOL");
+		ProMTextField dpField = new ProMTextField("_DATAPOOL_" + logName);
 		parameters.setDataPool(dpField.getText());
 //		parameters.setDataPoolStatus(DataPoolStatus.NEW);
 		dpField.getDocument().addDocumentListener(new DocumentListener() {
@@ -797,7 +798,10 @@ public class UploadEventLogDialog extends JPanel {
 		JTable t = new JTable(snippet, header);
 		t.getTableHeader().setBackground(WidgetColors.HEADER_COLOR);
 		t.getTableHeader().setForeground(WidgetColors.TEXT_COLOR);
+		t.setBackground(WidgetColors.COLOR_LIST_BG);
+		t.setForeground(WidgetColors.COLOR_LIST_FG);
 		ProMScrollPane pane = new ProMScrollPane(t);
+		
 		add(pane, "0, 0, 5, " + Integer.toString(rowTable - 2));
 
 		JLabel caseId = new JLabel("Case ID column:");
@@ -888,9 +892,9 @@ public class UploadEventLogDialog extends JPanel {
 
 			}
 		});
-		JLabel caseNewName = new JLabel("New name");
-		JLabel actNewName = new JLabel("New name");
-		JLabel timeNewName = new JLabel("New name");
+		JLabel caseNewName = new JLabel("New name:");
+		JLabel actNewName = new JLabel("New name:");
+		JLabel timeNewName = new JLabel("New name:");
 		add(caseId, "4, " + Integer.toString(rowTable - 1));
 		add(caseCombo, "4, " + Integer.toString(rowTable));
 		add(caseNewName, "5, " + Integer.toString(rowTable - 1));

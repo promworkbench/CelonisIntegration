@@ -37,7 +37,7 @@ public class PullBpmnAlgo {
 		String fileLocation = proRepo.getBpmnFileLocation(context, parameters.getCateName(), parameters.getPmName());
 		InputStream input = new FileInputStream(fileLocation);
     	long fileSizeInBytes = 1000;
-    	Bpmn bpmn = BpmnUtils.importFromStream(context, input, parameters.getPmName(), fileSizeInBytes);
+    	Bpmn bpmn = BpmnUtils.importFromStream(context, input,"_CELONIS_" + parameters.getCateName() + "/" + parameters.getPmName(), fileSizeInBytes);
     	
     	BpmnSelectDiagramPlugin diagram = new BpmnSelectDiagramPlugin();
 		

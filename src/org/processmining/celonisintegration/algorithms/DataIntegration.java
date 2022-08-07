@@ -6,14 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
@@ -958,23 +952,21 @@ public class DataIntegration {
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	public void uploadCSV(String dataPoolId, String fileLocation, String tableName, String timestampColumn,
+	public void uploadCSV(PluginContext context, String dataPoolId, String fileLocation, String tableName, String timestampColumn,
 			int chunkSize) throws CsvValidationException, IOException, InterruptedException, ExecutionException {
 		TableSchema tableSchema = getTableConfig(fileLocation, timestampColumn, tableName);
 		String jobId = this.createPushJob(dataPoolId, tableName, tableSchema);
-		this.uploadCsvChunk(chunkSize, dataPoolId, jobId, fileLocation);
+		this.uploadCsvChunk(context, chunkSize, dataPoolId, jobId, fileLocation);
 		this.executeJob(jobId, dataPoolId);
-		System.out.println("start getting status");
-
 		while (true) {
 			String status = getStatus(dataPoolId, jobId);
-			System.out.println(status);
+			context.log("In queue...");
 			if (status.equals("DONE")) {
 				break;
 			}
 			TimeUnit.SECONDS.sleep(3);
 		}
-		System.out.println("done");
+		context.log("Pushing event log done");
 
 	}
 
@@ -1042,37 +1034,18 @@ public class DataIntegration {
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	private void uploadCsvChunk(int chunkSize, String dataPoolId, String jobId, String fileLocation)
+	private void uploadCsvChunk(PluginContext context, int chunkSize, String dataPoolId, String jobId, String fileLocation)
 			throws CsvValidationException, IOException, InterruptedException, ExecutionException {
-		System.out.println("Start devide chunks");
-		long startDivide = System.currentTimeMillis();
+		context.log("Dividing event log into chunks...");
 		List<String> chunksLocation = divideChunks(fileLocation, chunkSize);
-		System.out.println("Done devide chunks");
-		long endDivide = System.currentTimeMillis();
-		System.out.println((endDivide - startDivide) / 60000);
-
-		ExecutorService executorService = Executors.newFixedThreadPool(100);
-		Set<Callable<String>> callables = new HashSet<Callable<String>>();
-		System.out.println("Start push chunks");
-		long startPush = System.currentTimeMillis();
-		for (String chunk : chunksLocation) {
-			callables.add(new Callable<String>() {
-				public String call() throws Exception {
-					uploadFile(dataPoolId, jobId, chunk);
-					return "finish uploading " + chunk;
-				}
-			});
+		context.log("Divide event log into chunks done");
+		int chunkLength = chunksLocation.size();
+		for (String chunkLocation: chunksLocation) {
+			context.log(chunkLength + " chunks left...");
+			uploadFile(dataPoolId, jobId, chunkLocation);
+			context.log("Finish pushing chunk at " + chunkLocation);
+			chunkLength -= 1;			
 		}
-		List<Future<String>> futures = executorService.invokeAll(callables);
-
-		for (Future<String> future : futures) {
-			System.out.println(future.get());
-		}
-		executorService.shutdown();
-		long endPush = System.currentTimeMillis();
-		System.out.println("End push chunks");
-		System.out.println((endPush - startPush) / 60000);
-
 		for (String chunk : chunksLocation) {
 			File tempFile = new File(chunk);
 			tempFile.delete();

@@ -461,8 +461,8 @@ public class ProcessAnalytics {
 	}
 
 	public String getQueryId(PluginContext context, String anaId, String sheetId, String tableId) throws Exception {
-		String dmId = this.getDataModelId(anaId);
-				
+		context.log("Extracting PQL query of the table...");
+		String dmId = this.getDataModelId(anaId);				
 		HashMap<String, String> queryMap = this.getPullingQuery(anaId, sheetId, tableId);
 		context.getProgress().inc();
 		List<String> query = new ArrayList<String>();
@@ -472,7 +472,8 @@ public class ProcessAnalytics {
 			query.add(queryMap.get("column"));
 			query.add(queryMap.get("filter"));
 		}
-		context.log("Sending query");
+		context.log("Extract PQL query of the table done");
+		context.log("Sending query...");
 		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + anaId + "/exporting/query";
 		String payload = this.getPayload(query, dmId);
 		HttpHeaders headers = new HttpHeaders();
@@ -481,10 +482,11 @@ public class ProcessAnalytics {
 
 		HttpEntity<String> postRequest = new HttpEntity<String>(payload, headers);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.POST, postRequest, String.class);
-		JSONObject body = new JSONObject(response.getBody());
+		
+		String res = ErrorUtils.checkDownloadOlap(targetUrl, postRequest, restTemplate);
 		context.getProgress().inc();
-		return body.getString("id");
+		context.log("Send query done");
+		return res;
 	}
 
 	public String getCsv(PluginContext context, String anaName, String sheetName, String tableName) throws Exception {
@@ -502,7 +504,7 @@ public class ProcessAnalytics {
 			TimeUnit.SECONDS.sleep(1);
 		}
 		
-		context.log("Downloading the table");
+		context.log("Downloading the table...");
 		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + anaId + "/exporting/query/"
 				+ queryId + "/download";
 		HttpHeaders headers = new HttpHeaders();
@@ -514,6 +516,7 @@ public class ProcessAnalytics {
 		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
 		String body = response.getBody();
 		File tempFile = File.createTempFile("event_log_celonis_" + anaName, ".csv");
+		context.log("Downloading the table done");
 		XESUtils.writeToCsv(body, tempFile);
 		return tempFile.getAbsolutePath().toString();
 

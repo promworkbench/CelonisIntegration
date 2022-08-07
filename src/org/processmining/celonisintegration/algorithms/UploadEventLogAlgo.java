@@ -28,10 +28,6 @@ public class UploadEventLogAlgo {
 		 * provided the parameters.
 		 */
 		long time = -System.currentTimeMillis();
-		parameters.displayMessage("[YourAlgorithm] Start");
-		parameters.displayMessage("[YourAlgorithm] First input = " + log.toString());
-		parameters.displayMessage("[YourAlgorithm] Parameters = " + parameters.toString());
-
 		String url = parameters.getUrl();
 		String token = parameters.getToken();
 		DataIntegration celonis = new DataIntegration(url, token);
@@ -49,7 +45,7 @@ public class UploadEventLogAlgo {
 		String tableName = parameters.getTableName();
 		String ws = parameters.getWorkspace();
 		String ana = parameters.getAnalysis();
-		
+
 		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE 
 				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
 			ws = parameters.getWorkspaceReplace();
@@ -59,12 +55,12 @@ public class UploadEventLogAlgo {
 				||parameters.getAnalysisStatus() == AnalysisStatus.ADD) {
 			ana = parameters.getAnalysisReplace();
 		}
-		
+
 		String dataPoolId = "";
 		String dataModelId = "";
 		String workspaceId = "";
 		String anaId = "";
-		
+		context.log("Processing the request...");
 		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
 			context.log("Creating data pool " + dp);
 			dataPoolId = celonis.createDataPool(dp);
@@ -182,9 +178,9 @@ public class UploadEventLogAlgo {
 			mapping.put(timeCol, timeColNew);
 			timeCol = timeColNew;
 		}
-
+		
 		File actCSV = parameters.getActCSV();
-		context.log("Creating case table");
+		context.log("Creating case table...");
 		File caseCSV = XESUtils.createCaseCSV(log, casePrefix);
 		context.getProgress().inc();
 
@@ -192,28 +188,34 @@ public class UploadEventLogAlgo {
 			actCSV = XESUtils.changeColumnName(actCSV, mapping);
 			caseCSV = XESUtils.changeColumnName(caseCSV, mapping);
 		}
-
+		context.log("Process the request done");
 		
-		context.log("Uploading activity table of " + tableName);
-		celonis.uploadCSV(dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 100000);
+		context.log("Pushing activity table of " + tableName + " to Celonis...");
+		celonis.uploadCSV(context, dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 100000);
+		context.log("Pushing activity table of " + tableName + " to Celonis done");
 		context.getProgress().inc();
-		context.log("Uploading case table of " + tableName);
-		celonis.uploadCSV(dataPoolId, caseCSV.getPath(), tableName + "_CASE", timeCol, 100000);
+		context.log("Pushing case table of " + tableName + " to Celonis...");
+		celonis.uploadCSV(context, dataPoolId, caseCSV.getPath(), tableName + "_CASE", timeCol, 100000);
+		context.log("Pushing case table of " + tableName + " to Celonis done");
 		context.getProgress().inc();
-		context.log("Uploading activity table of " + tableName + " to data pool " + dp);
+		context.log("Uploading activity table of " + tableName + " to data pool " + dp + "...");
 		celonis.addTableFromPool(tableName + "_ACTIVITIES", dataPoolId, dataModelId);
+		context.log("Uploading activity table of " + tableName + " to data pool " + dp + " done");
 		context.getProgress().inc();
-		context.log("Uploading case table of " + tableName + " to data pool " + dp);
+		context.log("Uploading case table of " + tableName + " to data pool " + dp + "...");
 		celonis.addTableFromPool(tableName + "_CASE", dataPoolId, dataModelId);
+		context.log("Uploading case table of " + tableName + " to data pool " + dp + " done");
 		context.getProgress().inc();
-		context.log("Configuring foreign keys");
+		context.log("Configuring foreign keys...");
 		celonis.addForeignKeys(tableName + "_ACTIVITIES", caseCol, tableName + "_CASE", caseCol, dataModelId,
 				dataPoolId);
 		celonis.addProcessConfiguration(dataModelId, dataPoolId, tableName + "_ACTIVITIES", tableName + "_CASE",
 				caseCol, actCol, timeCol);
+		context.log("Configuring foreign keys done");
 		context.getProgress().inc();
-		context.log("Reloading data model");
+		context.log("Reloading data model...");
 		celonis.reloadDataModel(dataModelId, dataPoolId);
+		context.log("Reloading data model done");
 		context.getProgress().inc();
 		actCSV.delete();
 		caseCSV.delete();

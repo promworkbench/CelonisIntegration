@@ -68,7 +68,7 @@ public class UploadEventLogDialog extends JPanel {
 	public UploadEventLogDialog(UIPluginContext context, final UploadEventLogParameter parameters, XLog log,
 			DataIntegration di) throws Exception {
 		//Celonis info
-		String logName = XConceptExtension.instance().extractName(log) != null ? XConceptExtension.instance().extractName(log) : "Anonymous";
+		String logName = XConceptExtension.instance().extractName(log) != null ? XConceptExtension.instance().extractName(log).replaceAll(" ", "_") : "Anonymous";
 		int rowsNum = 40;
 		int rowTable = 2;
 		double[] rows = new double[rowsNum];

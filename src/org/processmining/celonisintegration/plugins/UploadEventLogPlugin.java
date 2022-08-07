@@ -44,20 +44,25 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 		context.getProgress().setMinimum(0);
 		context.getProgress().setMaximum(10);
 		context.getProgress().setIndeterminate(false);
-
-		context.log("Converting the event log to CSV");
-		File actCsv = XESUtils.createActCSV(log, "case-", 0);
-		context.getProgress().inc();
-		parameters.setActCSV(actCsv);
 		UploadEventLogAccessDialog dialog = new UploadEventLogAccessDialog(context, parameters);
 		InteractionResult result = context.showWizard("Celonis access", true, true, dialog);
 		if (result == InteractionResult.FINISHED) {
+			context.log("Checking validation of login information...");
 			ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
-			context.log("Getting information about the workspaces, analyses, data pools, data models, tables");
+			context.log("Check validation of login information done");			
+			context.log("Converting the event log to CSV...");
+			File actCsv = XESUtils.createActCSV(log, "case-", 0);
+			context.log("Convert the event log to CSV done");
+			context.getProgress().inc();
+			parameters.setActCSV(actCsv);			
+			context.log("Getting information about the workspaces, analyses, data pools, data models, tables...");
 			DataIntegration di = new DataIntegration(parameters.getUrl(), parameters.getToken());
+			context.log("Get information about the workspaces, analyses, data pools, data models, tables done");		
+			
 			UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters, log, di);
 			InteractionResult result1 = context.showWizard("Upload event log to Celonis", true, true, dialog1);
-			if (result1 == InteractionResult.FINISHED) {		
+			if (result1 == InteractionResult.FINISHED) {	
+				context.log("Checking validation of parameters...");
 				String dp = parameters.getDataPool();
 				if (parameters.getDataPoolStatus() != DataPoolStatus.NEW) {
 					dp = "";
@@ -79,7 +84,8 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 					ana = "";
 				}
 				ErrorUtils.checkDuplicateParameterUpload(di, dp, dm, tableName);
-				runConnections(context, log, parameters);
+				context.log("Check validation of parameters done");
+				runConnections(context, log, parameters);				
 				context.getProgress().inc();
 				return log;
 			}

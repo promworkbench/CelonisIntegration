@@ -46,17 +46,16 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
 	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	  
 	    if (result1 == InteractionResult.FINISHED) {
 	    	ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
-	    	context.log("Getting the list of Data Model Tables");
+	    	context.log("Getting the list of Data Model Tables...");
 		    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
 		    context.getProgress().inc();
 		    InteractionResult result2 = context.showWizard("Choose a Table", true, true, dialog2);	   
 		    if (result2 == InteractionResult.FINISHED) {
-		    	context.log("Extracting PQL query of the table");
 		    	CSVFile csv = runConnections(context, parameters);	 
 		    	context.getProgress().inc();
 		    	context.getFutureResult(0).setLabel(parameters.getDataPool() + " / " + 
 						parameters.getDataModel() + " / " + 
-						parameters.getTableName() + " / " + ".csv");
+						parameters.getTableName() + ".csv");
 			    return csv;
 		    }
 		    else {

@@ -118,6 +118,7 @@ public class ProcessRepository {
 	 * @throws IOException
 	 */
 	public String getBpmnFileLocation(PluginContext context, String cateName, String pmName) throws IOException {
+		context.log("Sending query...");
 		String categoryId = getCategory(cateName);
 		String processModelId = getProcessModel(cateName, pmName);
 		
@@ -128,18 +129,20 @@ public class ProcessRepository {
         headers.setContentType(MediaType.APPLICATION_JSON);	
         HttpEntity<String> getRequest = new HttpEntity<String>(headers);   
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);          
+        ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);         
+        context.log("Send query done");
         JSONObject body = new JSONObject(response.getBody());        
         context.getProgress().inc();
-        context.log("Decoding");
+        context.log("Decoding...");
         String content = body.getString("content");
         byte[] xmlDecoded = Base64.getDecoder().decode(content);
-        
+        context.log("Decode done");
+        context.log("Writing model to file...");
         File tempFile = File.createTempFile(pmName, ".bpmn");
         FileWriter outputFile = new FileWriter(tempFile);
         outputFile.write(new String(xmlDecoded));
         outputFile.close();
-        System.out.println(tempFile.getPath());
+        context.log("Write model to file done");
         
         return tempFile.getPath();
         

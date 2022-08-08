@@ -32,7 +32,7 @@ public class PullBpmnAccessDialog extends JPanel {
 	public PullBpmnAccessDialog(UIPluginContext context, final PullBpmnParameter parameters) throws CsvValidationException, IOException {
 		String nameCache = "Process-Repository";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
-		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM,TableLayoutConstants.MINIMUM } };
+		double size[][] = { { 800 }, { TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM, 10, TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM } };
 		setLayout(new TableLayout(size));
 		
 		ProMTextField urlField = new ProMTextField(accessInfo[0]);
@@ -142,7 +142,7 @@ public class PullBpmnAccessDialog extends JPanel {
 		JLabel token = new JLabel("API Token:");
 		add(url, "0, 0");
 		add(urlField, "0, 1");
-		add(token, "0, 2");
-		add(tokenField, "0, 3");          
+		add(token, "0, 3");
+		add(tokenField, "0, 4");   
 	}
 }

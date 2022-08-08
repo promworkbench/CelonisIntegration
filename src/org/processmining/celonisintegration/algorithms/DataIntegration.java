@@ -401,26 +401,27 @@ public class DataIntegration {
 	
 	public String getCsv(PluginContext context, String dpId, String dmId, String tableName, 
 			Boolean isMerged, String caseTable, List<String> keyCaseCol) throws Exception {
-		context.log("Sending query for the table");
-		String queryId = this.getQueryId(dpId, dmId, tableName, isMerged, caseTable, keyCaseCol);
+		String queryId = this.getQueryId(context, dpId, dmId, tableName, isMerged, caseTable, keyCaseCol);
 		String status = "";
 		int delay = 0;
 		while (true) {
+			context.log("In queue...");
 			status = this.getExportStatus(dmId, queryId);
 			delay += 1;
-			if (status.equals("DONE") || status.equals("FAILED") || delay == 60) {
+			if (status.equals("DONE") || status.equals("FAILED") || delay == 80) {
 				break;
 			}
 			TimeUnit.SECONDS.sleep(2);
 		}
-		context.getProgress().inc();
-		context.log("Sending request");
 		if (status.equals("FAILED")) {
 			throw new Exception(this.getExportMessage(dmId, queryId));
 		}
-		if (delay == 60) {
-			throw new Exception("The table is too big");
+		if (delay == 80) {
+			throw new UserException("The table is too big");
 		}
+		context.log("Send query for the table done");
+		context.getProgress().inc();
+		context.log("Requesting to download table...");
 		String targetUrl = this.url + "/integration/api/v1/compute/" + dmId + "/export/" + queryId + "/result";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -429,11 +430,13 @@ public class DataIntegration {
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		context.log("Request to download table done");
 		context.getProgress().inc();
-		context.log("Downloading the table");
+		context.log("Downloading the table...");
 		String log = response.getBody();
 		File tempFile = File.createTempFile("event_log_celonis_" + tableName, ".csv");
 		XESUtils.writeToCsv(log, tempFile);
+		context.log("Download the table done");
 		return tempFile.getAbsolutePath().toString();
 	}
 
@@ -465,14 +468,18 @@ public class DataIntegration {
 		return body.getString("exportStatus");
 	}
 
-	public String getQueryId(String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) {
+	public String getQueryId(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) {
 		String query = "";
+		context.log("Extracting PQL query of the table...");
 		if (isMerged) {
 			query = this.getMergePullingQuery(dpId, dmId, tableName, caseTable, keyCaseCol);
 		}
 		else {
 			query = this.getPullingQuery(dpId, dmId, tableName);
 		}
+		context.log("Extract PQL query of the table done");
+		context.getProgress().inc();
+		context.log("Sending query for the table...");
 		String targetUrl = this.url + "/integration/api/v1/compute/" + dmId + "/export/query";
 		String payload = this.getPullingPayload(query);
 		HttpHeaders headers = new HttpHeaders();

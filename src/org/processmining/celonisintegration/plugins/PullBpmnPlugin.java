@@ -46,12 +46,11 @@ public class PullBpmnPlugin extends PullBpmnAlgo {
 	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
 	    if (result1 == InteractionResult.FINISHED) {
 	    	ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
-	    	context.log("Getting the list of BPMN models");
+	    	context.log("Getting the list of BPMN models...");
 		    PullBpmnDialog dialog2 = new PullBpmnDialog(context, parameters);
 		    context.getProgress().inc();
 		    InteractionResult result2 = context.showWizard("Choose a Model", true, true, dialog2);
 		    if (result2 == InteractionResult.FINISHED) {
-		    	context.log("Sending query");
 		    	BPMNDiagram bpmn = runConnections(context, parameters);	   
 		    	context.getProgress().inc();
 			    return bpmn;

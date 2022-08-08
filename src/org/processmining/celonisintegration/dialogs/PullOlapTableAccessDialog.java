@@ -35,7 +35,7 @@ public class PullOlapTableAccessDialog extends JPanel {
 			throws CsvValidationException, IOException {
 		String nameCache = "Process-Analytics";
 		String[] accessInfo = CacheUtils.getAccessInfo(nameCache);
-		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.MINIMUM, 40, 40, 40 } };
+		double size[][] = { { 800 }, { TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM, 10, TableLayoutConstants.MINIMUM, TableLayoutConstants.MINIMUM } };
 		setLayout(new TableLayout(size));
 
 		ProMTextField urlField = new ProMTextField(accessInfo[0]);
@@ -145,14 +145,7 @@ public class PullOlapTableAccessDialog extends JPanel {
 		JLabel token = new JLabel("API Token:");
 		add(url, "0, 0");
 		add(urlField, "0, 1");
-		add(token, "0, 2");
-		add(tokenField, "0, 3");
-
-//		if (!urlField.getText().equals(accessInfo[0]) || !tokenField.getText().equals(accessInfo[1])) {
-//			CacheUtils.updateAccessInfo(nameCache, urlField.getText(), tokenField.getText());
-//		}
-
-		//        
-
+		add(token, "0, 3");
+		add(tokenField, "0, 4");
 	}
 }

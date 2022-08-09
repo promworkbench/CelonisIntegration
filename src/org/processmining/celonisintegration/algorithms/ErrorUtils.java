@@ -4,6 +4,10 @@ import org.json.JSONObject;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataPoolStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.TableStatus;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -37,31 +41,42 @@ public class ErrorUtils {
 		
 	}
 	
-	public static void checkDuplicateParameterUpload(DataIntegration celonis, String dp, String dm, String tableName) throws Exception {
-		if (!dp.equals("")) {
-			for (DataPool dataPool: celonis.getDataPools()) {
-				if (dp.equals(dataPool.getName())) {
-					throw new UserException("Data Pool name is already taken");
+	public static void checkDuplicateParameterUpload(DataIntegration celonis, UploadEventLogParameter parameters) throws Exception {
+		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
+			for (DataPool dp: celonis.getDataPools()) {
+				if (dp.getName().equals(parameters.getDataPool())) {
+					throw new UserException("Data Pool name \"" + parameters.getDataPool() + "\" is already taken.");
 				}
 			}
-		}		
-		
-		if (!dm.equals("")) {
-			for (DataModel dataModel: celonis.getDataModels()) {
-				if (dm.equals(dataModel.getName())) {
-					throw new UserException("Data Model name is already taken");
+		}
+		else if (parameters.getDataPoolStatus() == DataPoolStatus.ADD){
+			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {
+				for (DataModel dm: celonis.getDataModels()) {
+					if (dm.getDp().getName().equals(parameters.getDataPoolReplace()) && dm.getName().equals(parameters.getDataModel())) {
+						throw new UserException("Data Model name \"" + parameters.getDataModel() + 
+								"\" is already taken in the " + parameters.getDataPoolReplace() + " Data Pool");
+					}
+				}
+			}
+			else if (parameters.getDataModelStatus() == DataModelStatus.ADD) {
+				if (parameters.getTableStatus() == TableStatus.NEW) {
+					for (DataModelTable table: celonis.getDataModelTables()) {
+						String dmId = celonis.getDataModelId(parameters.getDataPoolReplace(), parameters.getDataModelReplace());
+						if (table.getDmId().equals(dmId) && table.getName().equals(parameters.getTableName())) {
+							throw new UserException("Table name \"" + parameters.getTableName() + 
+									"\" is already taken in the " + parameters.getDataModelReplace() + " Data Model");
+						}
+					}
 				}
 			}
 		}
 		
-		if (!tableName.equals("")) {
-			for (DataModelTable table: celonis.getDataModelTables()) {
-				if (tableName.equals(table.getName())) {
-					throw new UserException("Table name is already taken");
-				}
-			}	
+	}
+	
+	public static void checkUniqueColumn(String caseCol, String actCol) throws UserException {
+		if (caseCol.equals(actCol)) {
+			throw new UserException("Case ID column and Activity column must be different");
 		}
-		
 	}
 	
 	public static String checkDownloadOlap(String targetUrl, HttpEntity<String> postRequest, RestTemplate restTemplate) throws Exception{

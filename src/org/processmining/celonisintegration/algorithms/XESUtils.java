@@ -130,7 +130,20 @@ public class XESUtils {
 		return columnMap;
 	}
 
-	public static List<String> getStringColumns(XLog log, String casePrefix) {
+	public static List<String> getCaseStringColumns(XLog log, String casePrefix) {
+		List<String> res = new ArrayList<String>();
+		XLogInfo logInfo = XLogInfoFactory.createLogInfo(log);
+		XAttributeInfo traceAttributeInfo = logInfo.getTraceAttributeInfo();
+		for (XAttribute attr : traceAttributeInfo.getAttributes()) {
+			if (!(attr instanceof XAttributeTimestamp)) {
+				res.add(casePrefix + attr.getKey());
+			}
+
+		}
+		return res;
+	}
+	
+	public static List<String> getAllStringColumns(XLog log, String casePrefix) {
 		List<String> res = new ArrayList<String>();
 		XLogInfo logInfo = XLogInfoFactory.createLogInfo(log);
 		XAttributeInfo traceAttributeInfo = logInfo.getTraceAttributeInfo();

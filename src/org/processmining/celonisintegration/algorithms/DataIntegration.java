@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
@@ -811,8 +812,10 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param dataPoolId
 	 * @throws InterruptedException
+	 * @throws UserException 
+	 * @throws JSONException 
 	 */
-	public void reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException {
+	public void reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException, JSONException, UserException {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/reload",
 				dataPoolId);
@@ -838,6 +841,14 @@ public class DataIntegration {
 			String status = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("loadStatus");
 			if (status.equals("SUCCESS")) {
 				break;
+			}
+			if (status.equals("ERROR")) {
+//				throw new UserException(body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("message"));
+				throw new UserException("<html><p align='justify'>This is going to be a really long "
+                + "message that says a lot of words but doesnt really say anything. "
+                + "We want label containing the message (and the itemPanel that "
+                + "contains it to always have as much height as necessary to display "
+                + "the message given the width of the frame.</p></html>");
 			}
 			TimeUnit.SECONDS.sleep(3);
 

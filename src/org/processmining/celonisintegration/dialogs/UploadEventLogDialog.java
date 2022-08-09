@@ -54,7 +54,6 @@ public class UploadEventLogDialog extends JPanel {
 	private static List<DataModel> dataModels;
 	private static List<Workspace> workspaces;
 	private static String currentDataPool;
-	private static String currentWorkspaceId;
 	private static DataModel currentDataModel;
 	private static Workspace currentWorkspace;
 
@@ -91,7 +90,6 @@ public class UploadEventLogDialog extends JPanel {
 		workspaces = new ArrayList<Workspace>();
 		anaNames = new ArrayList<String>();
 		currentDataPool = "";
-		currentWorkspaceId = "";
 		currentDataModel = new CelonisObject().new DataModel();
 		currentWorkspace = new CelonisObject().new Workspace();
 		
@@ -106,7 +104,7 @@ public class UploadEventLogDialog extends JPanel {
 		updateTable(di);
 		updateWorkspace(di);
 		if (workspaces.size() > 0) {
-			currentWorkspaceId = workspaces.get(0).getId();
+			currentWorkspace = workspaces.get(0);
 		}
 		updateAnalysis(di);
 
@@ -155,7 +153,7 @@ public class UploadEventLogDialog extends JPanel {
 		anaCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ProMComboBox<String> cb = (ProMComboBox<String>) e.getSource();
-				String dmC = (String) cb.getSelectedItem();
+				cb.getSelectedItem();
 				parameters.setAnalysisReplace(anaCol);
 			}
 		});
@@ -241,7 +239,7 @@ public class UploadEventLogDialog extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 		
 				layoutCardWorkspace.show(cardWorkspaceCont, "1");
-				layoutCardAnalysis.show(cardAnalysisCont, "1");
+				layoutCardAnalysis.show(cardAnalysisCont, "2");
 				parameters.setAnalysisStatus(AnalysisStatus.NEW);
 				parameters.setWorkspaceStatus(WorkspaceStatus.ADD);
 				bWorkspaceAdd.setBackground(new Color(80, 0, 0));
@@ -250,6 +248,12 @@ public class UploadEventLogDialog extends JPanel {
 				bWorkspaceNew.setForeground(new Color(210, 210, 210));
 				bWorkspaceSelect.setBackground(new Color(40, 40, 40));
 				bWorkspaceSelect.setForeground(new Color(210, 210, 210));
+				
+				bAnalysisNew.setBackground(new Color(80, 0, 0));
+				bAnalysisNew.setForeground(new Color(240, 240, 240));
+				bAnalysisSelect.setBackground(new Color(40, 40, 40));
+				bAnalysisSelect.setForeground(new Color(210, 210, 210));
+				
 				bAnalysisSelect.setVisible(true);
 			}
 
@@ -345,7 +349,7 @@ public class UploadEventLogDialog extends JPanel {
 		tableCombo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				ProMComboBox<String> cb = (ProMComboBox<String>) e.getSource();
-				String dmC = (String) cb.getSelectedItem();
+				cb.getSelectedItem();
 				parameters.setTableNameReplace(tableCol);
 			}
 		});
@@ -475,19 +479,44 @@ public class UploadEventLogDialog extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 		
 				layoutCardDataModel.show(cardDataModelCont, "1");
-				layoutCardTable.show(cardTableCont, "1");
-				parameters.setTableStatus(TableStatus.REPLACE);
+				layoutCardTable.show(cardTableCont, "2");
+				layoutCardWorkspace.show(cardWorkspaceCont, "1");
+				layoutCardAnalysis.show(cardAnalysisCont, "2");
+				
 				parameters.setDataModelStatus(DataModelStatus.ADD);
+				parameters.setTableStatus(TableStatus.NEW);		
+				parameters.setWorkspaceStatus(WorkspaceStatus.ADD);
+				parameters.setAnalysisStatus(AnalysisStatus.NEW);
+				
 				bDataModelAdd.setBackground(new Color(80, 0, 0));
 				bDataModelAdd.setForeground(new Color(240, 240, 240));
 				bDataModelNew.setBackground(new Color(40, 40, 40));
 				bDataModelNew.setForeground(new Color(210, 210, 210));
 				bDataModelSelect.setBackground(new Color(40, 40, 40));
 				bDataModelSelect.setForeground(new Color(210, 210, 210));
+				
+				bTableNew.setBackground(new Color(80, 0, 0));
+				bTableNew.setForeground(new Color(240, 240, 240));
+				bTableSelect.setBackground(new Color(40, 40, 40));
+				bTableSelect.setForeground(new Color(210, 210, 210));
+				
+				bWorkspaceAdd.setBackground(new Color(80, 0, 0));
+				bWorkspaceAdd.setForeground(new Color(240, 240, 240));
+				bWorkspaceNew.setBackground(new Color(40, 40, 40));
+				bWorkspaceNew.setForeground(new Color(210, 210, 210));
+				bWorkspaceSelect.setBackground(new Color(40, 40, 40));
+				bWorkspaceSelect.setForeground(new Color(210, 210, 210));
+				
+				bAnalysisNew.setBackground(new Color(80, 0, 0));
+				bAnalysisNew.setForeground(new Color(240, 240, 240));
+				bAnalysisSelect.setBackground(new Color(40, 40, 40));
+				bAnalysisSelect.setForeground(new Color(210, 210, 210));
+				
 				bTableSelect.setVisible(true);
 				bWorkspaceSelect.setVisible(true);
 				bWorkspaceAdd.setVisible(true);
-				bAnalysisSelect.setVisible(true);
+				bAnalysisSelect.setVisible(true);				
+
 			}
 
 		});
@@ -662,13 +691,18 @@ public class UploadEventLogDialog extends JPanel {
 		bDataPoolAdd.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-			
-				layoutCardDataPool.show(cardDataPoolCont, "1");			
-				layoutCardDataModel.show(cardDataModelCont, "1");				
-				layoutCardTable.show(cardTableCont, "1");
-				parameters.setTableStatus(TableStatus.REPLACE);
-				parameters.setDataModelStatus(DataModelStatus.REPLACE);
+				layoutCardDataPool.show(cardDataPoolCont, "1");
+				layoutCardDataModel.show(cardDataModelCont, "1");
+				layoutCardTable.show(cardTableCont, "2");
+				layoutCardWorkspace.show(cardWorkspaceCont, "1");
+				layoutCardAnalysis.show(cardAnalysisCont, "2");
+
 				parameters.setDataPoolStatus(DataPoolStatus.ADD);
+				parameters.setDataModelStatus(DataModelStatus.ADD);
+				parameters.setTableStatus(TableStatus.NEW);		
+				parameters.setWorkspaceStatus(WorkspaceStatus.ADD);
+				parameters.setAnalysisStatus(AnalysisStatus.NEW);
+				
 				bDataPoolAdd.setBackground(new Color(80, 0, 0));
 				bDataPoolAdd.setForeground(new Color(240, 240, 240));
 				bDataPoolNew.setBackground(new Color(40, 40, 40));
@@ -676,11 +710,37 @@ public class UploadEventLogDialog extends JPanel {
 				bDataPoolSelect.setBackground(new Color(40, 40, 40));
 				bDataPoolSelect.setForeground(new Color(210, 210, 210));
 				bTableSelect.setVisible(true);
+				
+				bDataModelAdd.setBackground(new Color(80, 0, 0));
+				bDataModelAdd.setForeground(new Color(240, 240, 240));
+				bDataModelNew.setBackground(new Color(40, 40, 40));
+				bDataModelNew.setForeground(new Color(210, 210, 210));
+				bDataModelSelect.setBackground(new Color(40, 40, 40));
+				bDataModelSelect.setForeground(new Color(210, 210, 210));
+				
+				bTableNew.setBackground(new Color(80, 0, 0));
+				bTableNew.setForeground(new Color(240, 240, 240));
+				bTableSelect.setBackground(new Color(40, 40, 40));
+				bTableSelect.setForeground(new Color(210, 210, 210));
+				
+				bWorkspaceAdd.setBackground(new Color(80, 0, 0));
+				bWorkspaceAdd.setForeground(new Color(240, 240, 240));
+				bWorkspaceNew.setBackground(new Color(40, 40, 40));
+				bWorkspaceNew.setForeground(new Color(210, 210, 210));
+				bWorkspaceSelect.setBackground(new Color(40, 40, 40));
+				bWorkspaceSelect.setForeground(new Color(210, 210, 210));
+				
+				bAnalysisNew.setBackground(new Color(80, 0, 0));
+				bAnalysisNew.setForeground(new Color(240, 240, 240));
+				bAnalysisSelect.setBackground(new Color(40, 40, 40));
+				bAnalysisSelect.setForeground(new Color(210, 210, 210));
+				
 				bDataModelSelect.setVisible(true);
 				bDataModelAdd.setVisible(true);
+				bTableSelect.setVisible(true);
 				bWorkspaceSelect.setVisible(true);
 				bWorkspaceAdd.setVisible(true);
-				bAnalysisSelect.setVisible(true);
+				bAnalysisSelect.setVisible(true);				
 			}
 
 		});
@@ -791,7 +851,7 @@ public class UploadEventLogDialog extends JPanel {
 
 		// Event log config info
 		List<String> timestampCols = XESUtils.getTimestampCols(log, "case-");
-		List<String> cols = XESUtils.getStringColumns(log, "case-");
+		List<String> caseCols = XESUtils.getCaseStringColumns(log, "case-");
 		File csv = parameters.getActCSV();
 		String[][] snippet = XESUtils.getSnippet(csv, 28);
 		String[] header = XESUtils.getHeader(XESUtils.getColumnMap(log, "case-"));
@@ -807,7 +867,7 @@ public class UploadEventLogDialog extends JPanel {
 		JLabel caseId = new JLabel("Case ID column:");
 		JLabel act = new JLabel("Activity column:");
 		JLabel timestamp = new JLabel("Timestamp column:");
-		ProMComboBox<String> caseCombo = new ProMComboBox<String>(cols);
+		ProMComboBox<String> caseCombo = new ProMComboBox<String>(caseCols);
 		caseCombo.setSelectedIndex(0);
 		String caseCol = (String) caseCombo.getSelectedItem();
 		parameters.setCaseCol(caseCol);
@@ -819,7 +879,8 @@ public class UploadEventLogDialog extends JPanel {
 				parameters.setCaseCol(caseCol);
 			}
 		});
-		ProMComboBox<String> actCombo = new ProMComboBox<String>(cols);
+		List<String> actCols = XESUtils.getAllStringColumns(log, "case-");
+		ProMComboBox<String> actCombo = new ProMComboBox<String>(actCols);
 		actCombo.setSelectedIndex(0);
 		String actCol = (String) actCombo.getSelectedItem();
 		parameters.setActCol(actCol);

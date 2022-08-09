@@ -83,7 +83,8 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 				if (parameters.getAnalysisStatus() != AnalysisStatus.NEW) {
 					ana = "";
 				}
-				ErrorUtils.checkDuplicateParameterUpload(di, dp, dm, tableName);
+				ErrorUtils.checkDuplicateParameterUpload(di, parameters);
+				ErrorUtils.checkUniqueColumn(parameters.getCaseCol(), parameters.getActCol());
 				context.log("Check validation of parameters done");
 				runConnections(context, log, parameters);				
 				context.getProgress().inc();

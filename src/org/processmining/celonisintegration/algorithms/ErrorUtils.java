@@ -5,9 +5,11 @@ import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.AnalysisStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataPoolStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.TableStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.WorkspaceStatus;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,7 +43,7 @@ public class ErrorUtils {
 		
 	}
 	
-	public static void checkDuplicateParameterUpload(DataIntegration celonis, UploadEventLogParameter parameters) throws Exception {
+	public static void checkParameterUpload(DataIntegration celonis, UploadEventLogParameter parameters) throws Exception {
 		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
 			for (DataPool dp: celonis.getDataPools()) {
 				if (dp.getName().equals(parameters.getDataPool())) {
@@ -68,6 +70,56 @@ public class ErrorUtils {
 						}
 					}
 				}
+			}
+		}
+		if (parameters.getDataPoolStatus() == DataPoolStatus.REPLACE || parameters.getDataPoolStatus() == DataPoolStatus.ADD) {
+			if (parameters.getDataPoolReplace() == null) {
+				throw new UserException("Data Pool name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getDataPool().replaceAll(" ", "").equals("")) {
+				throw new UserException("Data Pool name can not be empty");
+			}
+		}
+		if (parameters.getDataModelStatus() == DataModelStatus.REPLACE || parameters.getDataModelStatus() == DataModelStatus.ADD) {
+			if (parameters.getDataModelReplace() == null) {
+				throw new UserException("Data Model name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getDataModel().replaceAll(" ", "").equals("")) {
+				throw new UserException("Data Model name can not be empty");
+			}
+		}
+		if (parameters.getTableStatus() == TableStatus.REPLACE) {
+			if (parameters.getTableNameReplace() == null) {
+				throw new UserException("Table name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getTableName().replaceAll(" ", "").equals("")) {
+				throw new UserException("Table name can not be empty");
+			}
+		}
+		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE || parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
+			if (parameters.getWorkspaceReplace() == null) {
+				throw new UserException("Workspace name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getWorkspace().replaceAll(" ", "").equals("")) {
+				throw new UserException("Workspace name can not be empty");
+			}
+		}
+		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE) {
+			if (parameters.getAnalysisReplace() == null) {
+				throw new UserException("Analysis name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getAnalysis().replaceAll(" ", "").equals("")) {
+				throw new UserException("Analysis name can not be empty");
 			}
 		}
 		

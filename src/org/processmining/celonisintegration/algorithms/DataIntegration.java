@@ -815,7 +815,7 @@ public class DataIntegration {
 	 * @throws UserException 
 	 * @throws JSONException 
 	 */
-	public void reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException, JSONException, UserException {
+	public String reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException, JSONException, UserException {
 		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/reload",
 				dataPoolId);
@@ -828,8 +828,11 @@ public class DataIntegration {
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
 		restTemplate.postForEntity(targetUrl, jobRequest, Object.class);
+		
+		String status = "RUNNING";
+		String message = "";
 
-		while (true) {
+		while (status.equals("RUNNING")) {
 			String loadUrl = String.format(
 					this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/load-history/load-info-sync",
 					dataPoolId);
@@ -838,21 +841,17 @@ public class DataIntegration {
 			ResponseEntity<String> r = restTemplate1.exchange(loadUrl, HttpMethod.GET, loadRequest, String.class);
 
 			JSONObject body = new JSONObject(r.getBody());
-			String status = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("loadStatus");
-			if (status.equals("SUCCESS")) {
-				break;
-			}
-			if (status.equals("ERROR")) {
-//				throw new UserException(body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("message"));
-				throw new UserException("<html><p align='justify'>This is going to be a really long "
-                + "message that says a lot of words but doesnt really say anything. "
-                + "We want label containing the message (and the itemPanel that "
-                + "contains it to always have as much height as necessary to display "
-                + "the message given the width of the frame.</p></html>");
-			}
+			status = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("loadStatus");
+			message = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("message");
 			TimeUnit.SECONDS.sleep(3);
 
 		}
+		if (status.equals("ERROR")) {
+			throw new UserException(message);			
+		}
+		else {
+			return message;
+		} 
 	}
 
 	/**

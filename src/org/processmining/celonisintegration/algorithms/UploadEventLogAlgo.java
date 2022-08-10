@@ -22,12 +22,12 @@ public class UploadEventLogAlgo {
 	 * @param parameters
 	 * @throws Exception
 	 */
-	public void apply(PluginContext context, XLog log, UploadEventLogParameter parameters) throws Exception {
+	public String apply(PluginContext context, XLog log, UploadEventLogParameter parameters) throws Exception {
 		/**
 		 * Put your algorithm here, which computes an output form the inputs
 		 * provided the parameters.
 		 */
-		long time = -System.currentTimeMillis();
+		String res = "";
 		String url = parameters.getUrl();
 		String token = parameters.getToken();
 		DataIntegration celonis = new DataIntegration(url, token);
@@ -211,14 +211,21 @@ public class UploadEventLogAlgo {
 		context.log("Configuring foreign keys done");
 		context.getProgress().inc();
 		context.log("Reloading data model...");
-		celonis.reloadDataModel(dataModelId, dataPoolId);
+		String message = celonis.reloadDataModel(dataModelId, dataPoolId);
 		context.log("Reloading data model done");
 		context.getProgress().inc();
 		actCSV.delete();
 		caseCSV.delete();
 
-		time += System.currentTimeMillis();
-		parameters.displayMessage("[YourAlgorithm] End (took " + time / 1000.0 + "  seconds).");
+		res = res + "The event log is uploaded to Data Model: " + dm
+				  + " in Data Pool " + dp
+				  + ". The Workspace " + ws
+				  + " corresponding to that Data Model is created with the Analysis " + ana + ".";
+		if (!message.isEmpty()) {
+			res = res + "There is a warning: " + message;
+		}
+		
+		return res;
 	}
 	
 }

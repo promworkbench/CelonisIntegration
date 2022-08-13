@@ -17,7 +17,6 @@ import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
 import org.processmining.framework.plugin.PluginContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -62,7 +61,7 @@ public class ProcessAnalytics {
 		this.analyses = analyses;
 	}
 
-	public ProcessAnalytics(String url, String apiToken) {
+	public ProcessAnalytics(String url, String apiToken) throws UserException {
 		this.url = url;
 		this.apiToken = apiToken;
 		this.workspaces = new ArrayList<Workspace>();
@@ -76,14 +75,13 @@ public class ProcessAnalytics {
 		}
 	}
 
-	public void updateWorkspaces() {
-		RestTemplate restTemplate = new RestTemplate();
+	public void updateWorkspaces() throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Update workspace");
 
 		JSONArray body = new JSONArray(r.getBody());
 		for (int i = 0; i < body.length(); i++) {
@@ -95,15 +93,14 @@ public class ProcessAnalytics {
 		}
 	}
 
-	public void updateAnalyses() {
+	public void updateAnalyses() throws UserException {
 
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/process-mining/api/analysis";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Update analyses");
 
 		JSONArray body = new JSONArray(r.getBody());
 		for (int i = 0; i < body.length(); i++) {
@@ -120,15 +117,14 @@ public class ProcessAnalytics {
 		}
 	}
 
-	public void updateSheetAndTable(Analysis ana) {
+	public void updateSheetAndTable(Analysis ana) throws UserException {
 
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + ana.getId() + "/autosave";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get all sheet and table");
 
 		JSONObject body = new JSONObject(r.getBody());
 
@@ -159,7 +155,7 @@ public class ProcessAnalytics {
 
 	}
 
-	public String getDataModelId(String anaId) {
+	public String getDataModelId(String anaId) throws UserException {
 		String res = "";
 
 		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + anaId + "/data_model";
@@ -168,8 +164,7 @@ public class ProcessAnalytics {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get data model ID");
 		JSONObject body = new JSONObject(response.getBody());
 		res = body.getString("id");
 		return res;
@@ -291,16 +286,18 @@ public class ProcessAnalytics {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "get pulling query");
 		JSONObject body = new JSONObject(response.getBody());
 
-		//        JSONObject document = new JSONObject(body.getJSONObject("document"));
 		JSONArray sheets = new JSONArray(body.getJSONObject("document").getJSONArray("components"));
-		JSONArray variables = new JSONArray(body.getJSONObject("document").getJSONArray("variables"));
-		for (int i = 0; i < variables.length(); i++) {
-			variableMap.put(variables.getJSONObject(i).getString("name"), variables.getJSONObject(i).getString("value"));
+		if (body.getJSONObject("document").has("variables")) {
+			JSONArray variables = new JSONArray(body.getJSONObject("document").getJSONArray("variables"));
+			for (int i = 0; i < variables.length(); i++) {
+				variableMap.put(variables.getJSONObject(i).getString("name"), variables.getJSONObject(i).getString("value"));
+			}
 		}
+		
 		
 		JSONObject sheet = new JSONObject();
 		for (int i = 0; i < sheets.length(); i++) {
@@ -433,7 +430,7 @@ public class ProcessAnalytics {
 		return res;
 	}
 
-	public String getExportStatus(String anaId, String queryId) {
+	public String getExportStatus(String anaId, String queryId) throws UserException {
 		String targetUrl = this.url + "/process-mining/analysis/v1.2/api/analysis/" + anaId + "/exporting/query/"
 				+ queryId + "/status";
 		HttpHeaders headers = new HttpHeaders();
@@ -441,8 +438,7 @@ public class ProcessAnalytics {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get export status");
 		JSONObject body = new JSONObject(response.getBody());
 		return body.getString("exportStatus");
 	}
@@ -512,8 +508,7 @@ public class ProcessAnalytics {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get CSV file");
 		String body = response.getBody();
 		File tempFile = File.createTempFile("event_log_celonis_" + anaName, ".csv");
 		context.log("Downloading the table done");

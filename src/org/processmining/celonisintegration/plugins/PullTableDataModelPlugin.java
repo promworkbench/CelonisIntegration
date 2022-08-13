@@ -45,7 +45,9 @@ public class PullTableDataModelPlugin extends PullTableDataModelAlgo {
 	    PullTableAccessDialog dialog1 = new PullTableAccessDialog(context, parameters);
 	    InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);	  
 	    if (result1 == InteractionResult.FINISHED) {
-	    	ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+	    	context.log("Checking validation of login information...");
+			ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+			context.log("Check validation of login information done");			
 	    	context.log("Getting the list of Data Model Tables...");
 		    PullTableDataPoolDialog dialog2 = new PullTableDataPoolDialog(context, parameters);
 		    context.getProgress().inc();

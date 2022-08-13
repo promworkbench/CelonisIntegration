@@ -11,6 +11,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.processmining.celonisintegration.algorithms.ProcessRepository;
+import org.processmining.celonisintegration.algorithms.UserException;
 import org.processmining.celonisintegration.parameters.PullBpmnParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMList;
@@ -31,8 +32,9 @@ public class PullBpmnDialog extends JPanel {
 	 * The JPanel that allows the user to set (a subset of) the parameters.
 	 * @throws IOException 
 	 * @throws CsvValidationException 
+	 * @throws UserException 
 	 */
-	public PullBpmnDialog(UIPluginContext context, final PullBpmnParameter parameters) throws CsvValidationException, IOException {
+	public PullBpmnDialog(UIPluginContext context, final PullBpmnParameter parameters) throws CsvValidationException, IOException, UserException {
 		double size[][] = { { TableLayoutConstants.FILL }, { TableLayoutConstants.FILL} };
 		setLayout(new TableLayout(size));
 		DefaultListModel<String> listBpmns = new DefaultListModel<String>();

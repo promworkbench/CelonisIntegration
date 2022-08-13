@@ -45,7 +45,7 @@ public class DataIntegration {
 	private List<DataModel> dataModels;
 	private List<DataModelTable> dataModelTables;
 
-	public DataIntegration(String url, String apiToken) {
+	public DataIntegration(String url, String apiToken) throws UserException {
 		this.url = url;
 		this.apiToken = apiToken;
 		this.workspaces = new ArrayList<Workspace>();
@@ -156,14 +156,13 @@ public class DataIntegration {
 		return res;
 	}
 
-	public void updateWorkspaces() {
-		RestTemplate restTemplate = new RestTemplate();
+	public void updateWorkspaces() throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get workspaces");
 
 		JSONArray body = new JSONArray(r.getBody());
 		for (int i = 0; i < body.length(); i++) {
@@ -175,15 +174,15 @@ public class DataIntegration {
 		}
 	}
 
-	public void updateAnalyses() {
+	public void updateAnalyses() throws UserException {
 
-		RestTemplate restTemplate = new RestTemplate();
+
 		String targetUrl = this.url + "/process-mining/api/analysis";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get analyses");
 
 		JSONArray body = new JSONArray(r.getBody());
 		for (int i = 0; i < body.length(); i++) {
@@ -200,17 +199,14 @@ public class DataIntegration {
 		}
 	}
 
-	public void updateDataPools() {
-
-		RestTemplate restTemplate = new RestTemplate();
+	public void updateDataPools() throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools");
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get data pools");
 		JSONArray body = new JSONArray(r.getBody());
 
 		for (int i = 0; i < body.length(); i++) {
@@ -222,19 +218,17 @@ public class DataIntegration {
 
 	}
 
-	public void updateDataModels() {
+	public void updateDataModels() throws UserException {
 
 		for (DataPool dp : this.dataPools) {
 			String dpId = dp.getId();
-			RestTemplate restTemplate = new RestTemplate();
 			String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models";
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", "Bearer " + this.apiToken);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 
-			HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-			ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+			HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+			ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get data models");
 			JSONArray body = new JSONArray(r.getBody());
 
 			for (int i = 0; i < body.length(); i++) {
@@ -285,22 +279,18 @@ public class DataIntegration {
 
 	}	
 	
-	public List<String[]> getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) {
-		//res[0] = act col name, res[1] = case col name
+	public List<String[]> getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) throws UserException {
 		List<String[]> res = new ArrayList<String[]>();
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get foreign key");
 		JSONObject body = new JSONObject(r.getBody());
 		JSONArray foreignKeys = body.getJSONArray("foreignKeys");
 		JSONArray tables = body.getJSONArray("tables");
-		JSONObject processConfig = new JSONObject();
 		String caseTableId = "";
 		String actTableId = "";
 		
@@ -352,17 +342,15 @@ public class DataIntegration {
 		
 	}
 	
-	public String getCaseTableName(String dpId, String dmId, String tableName) {
+	public String getCaseTableName(String dpId, String dmId, String tableName) throws UserException {
 		String res = "";
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get case table name");
 		JSONObject body = new JSONObject(r.getBody());
 		JSONArray processConfigs = body.getJSONArray("processConfigurations");
 		JSONArray tables = body.getJSONArray("tables");
@@ -429,8 +417,7 @@ public class DataIntegration {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get CSV file");
 		context.log("Request to download table done");
 		context.getProgress().inc();
 		context.log("Downloading the table...");
@@ -441,35 +428,33 @@ public class DataIntegration {
 		return tempFile.getAbsolutePath().toString();
 	}
 
-	public String getExportMessage(String dmId, String queryId) {
+	public String getExportMessage(String dmId, String queryId) throws UserException {
 		String targetUrl = this.url + "/integration/api/v1/compute/" + dmId + "/export/" + queryId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get export message");
 		JSONObject body = new JSONObject(response.getBody());
 
 		return body.getString("message");
 	}
 
-	public String getExportStatus(String dmId, String queryId) {
+	public String getExportStatus(String dmId, String queryId) throws UserException {
 		String targetUrl = this.url + "/integration/api/v1/compute/" + dmId + "/export/" + queryId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> getRequest = new HttpEntity<String>(headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.GET, getRequest, String.class);
+		ResponseEntity<String> response = APIUtils.getWithPayloadRequest(targetUrl, getRequest, "Get export status");
 		JSONObject body = new JSONObject(response.getBody());
 
 		return body.getString("exportStatus");
 	}
 
-	public String getQueryId(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) {
+	public String getQueryId(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) throws UserException {
 		String query = "";
 		context.log("Extracting PQL query of the table...");
 		if (isMerged) {
@@ -488,8 +473,7 @@ public class DataIntegration {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> postRequest = new HttpEntity<String>(payload, headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange(targetUrl, HttpMethod.POST, postRequest, String.class);
+		ResponseEntity<String> response = APIUtils.postStringRequest(targetUrl, postRequest, "Get query ID");
 		JSONObject body = new JSONObject(response.getBody());
 		return body.getString("id");
 
@@ -507,7 +491,7 @@ public class DataIntegration {
 		return payload.toString();
 	}
 
-	public String getPullingQuery(String dpId, String dmId, String tableName) {
+	public String getPullingQuery(String dpId, String dmId, String tableName) throws UserException {
 		String res = "TABLE( ";
 		String tableId = this.getTableByName(tableName, dmId, dpId);
 		List<String> cols = getColumns(dpId, dmId, tableId);
@@ -536,7 +520,7 @@ public class DataIntegration {
 		return res;
 	}
 
-	public String getMergePullingQuery(String dpId, String dmId, String actTable, String caseTable, List<String> keyCaseCol) {
+	public String getMergePullingQuery(String dpId, String dmId, String actTable, String caseTable, List<String> keyCaseCol) throws UserException {
 		String res = "TABLE( ";
 		String tableId = this.getTableByName(actTable, dmId, dpId);
 		String caseTableId = this.getTableByName(caseTable, dmId, dpId);
@@ -596,19 +580,16 @@ public class DataIntegration {
 		return res;
 	}
 	
-	public List<String> getColumns(String dpId, String dmId, String tableId) {
+	public List<String> getColumns(String dpId, String dmId, String tableId) throws UserException {
 		List<String> res = new ArrayList<String>();
-
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables/" + tableId
 				+ "/columns";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get columns in tables in data model");
 		JSONArray body = new JSONArray(r.getBody());
 
 		for (int i = 0; i < body.length(); i++) {
@@ -618,59 +599,49 @@ public class DataIntegration {
 		return res;
 	}
 	
-	public void deleteDataPool(String dpId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void deleteDataPool(String dpId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-
-		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
+		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Data Pool");
 	}
 	
-	public void deleteDataModel(String dpId, String dmId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void deleteDataModel(String dpId, String dmId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-
-		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
+		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Data Model");
 	}
 	
-	public void deleteDataModelTable(String dpId, String dmId, String tableId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void deleteDataModelTable(String dpId, String dmId, String tableId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables/" + tableId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-
-		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
+		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Table in Data Model");
 	}
 	
-	public void deleteWorkspace(String wsId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void deleteWorkspace(String wsId) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes" + wsId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-
-		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
+		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Workspace");
 	}
 	
-	public void deleteAnalysis(String anaId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void deleteAnalysis(String anaId) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/analysis" + anaId;
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
-
-		restTemplate.exchange(targetUrl, HttpMethod.DELETE, jobRequest, String.class);
+		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Analysis");
 	}
 	
 	/**
@@ -678,9 +649,9 @@ public class DataIntegration {
 	 * 
 	 * @param name
 	 * @return
+	 * @throws UserException 
 	 */
-	public String createDataPool(String name) {
-		RestTemplate restTemplate = new RestTemplate();
+	public String createDataPool(String name) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -690,8 +661,7 @@ public class DataIntegration {
 		request.put("name", name);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.postStringRequest(targetUrl, jobRequest, "Create new Data Pool");
 
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
@@ -703,9 +673,9 @@ public class DataIntegration {
 	 * @param modelName
 	 * @param dataPoolId
 	 * @return
+	 * @throws UserException 
 	 */
-	public String createDataModel(String modelName, String dataPoolId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public String createDataModel(String modelName, String dataPoolId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models", dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -717,9 +687,8 @@ public class DataIntegration {
 		request.put("configurationSkipped", true);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		String r = restTemplate.postForObject(targetUrl, jobRequest, String.class);
-		JSONObject body = new JSONObject(r);
+		ResponseEntity<String> r = APIUtils.postStringRequest(targetUrl, jobRequest, "Create new Data Model");
+		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
 	}
 
@@ -729,9 +698,9 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param name
 	 * @return
+	 * @throws UserException 
 	 */
-	public String createWorkspace(String dataModelId, String name) {
-		RestTemplate restTemplate = new RestTemplate();
+	public String createWorkspace(String dataModelId, String name) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -742,16 +711,14 @@ public class DataIntegration {
 		request.put("dataModelId", dataModelId);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
-
+		ResponseEntity<String> r = APIUtils.postStringRequest(targetUrl, jobRequest, "Create new Workspace");
+		
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
 
 	}
 	
-	public String createAnalysis(String workspaceId, String name) {
-		RestTemplate restTemplate = new RestTemplate();
+	public String createAnalysis(String workspaceId, String name) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/analysis";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -763,8 +730,7 @@ public class DataIntegration {
 		request.put("applicationId", JSONObject.NULL);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.POST, jobRequest, String.class);
+		ResponseEntity<String> r = APIUtils.postStringRequest(targetUrl, jobRequest, "Create new Analysis");
 
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
@@ -780,13 +746,13 @@ public class DataIntegration {
 	 * @param caseIdColumn
 	 * @param actColumn
 	 * @param timestampColumn
+	 * @throws UserException 
 	 */
 	public void addProcessConfiguration(String dataModelId, String dataPoolId, String actTable, String caseTable,
-			String caseIdColumn, String actColumn, String timestampColumn) {
+			String caseIdColumn, String actColumn, String timestampColumn) throws UserException {
 		String actTableId = this.getTableByName(actTable, dataModelId, dataPoolId);
 		String caseTableId = this.getTableByName(caseTable, dataModelId, dataPoolId);
 
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(
 				this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/process-configurations",
 				dataPoolId);
@@ -802,7 +768,7 @@ public class DataIntegration {
 		request.put("timestampColumn", timestampColumn);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-		restTemplate.exchange(targetUrl, HttpMethod.PUT, jobRequest, String.class);
+		APIUtils.putRequest(targetUrl, jobRequest, "Configure the data model");
 
 	}
 
@@ -816,7 +782,6 @@ public class DataIntegration {
 	 * @throws JSONException 
 	 */
 	public String reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException, JSONException, UserException {
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/reload",
 				dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
@@ -827,7 +792,7 @@ public class DataIntegration {
 		request.put("forceComplete", true);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-		restTemplate.postForEntity(targetUrl, jobRequest, Object.class);
+		APIUtils.postEntityWithPayloadRequest(targetUrl, jobRequest, "Reload data model");
 		
 		String status = "RUNNING";
 		String message = "";
@@ -861,17 +826,17 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param dataPoolId
 	 * @return
+	 * @throws UserException 
 	 */
-	public String getTableByName(String tableName, String dataModelId, String dataPoolId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public String getTableByName(String tableName, String dataModelId, String dataPoolId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables",
 				dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r =APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get Table ID");
 		JSONArray body = new JSONArray(r.getBody());
 
 		String res = "";
@@ -896,13 +861,13 @@ public class DataIntegration {
 	 * @param column2
 	 * @param dataModelId
 	 * @param dataPoolId
+	 * @throws UserException 
 	 */
 	public void addForeignKeys(String table1, String column1, String table2, String column2, String dataModelId,
-			String dataPoolId) {
+			String dataPoolId) throws UserException {
 		String table1Id = this.getTableByName(table1, dataModelId, dataPoolId);
 		String table2Id = this.getTableByName(table2, dataModelId, dataPoolId);
 
-		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(
 				this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/foreign-keys", dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
@@ -921,7 +886,7 @@ public class DataIntegration {
 		request.put("columns", columns);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
-		restTemplate.postForEntity(targetUrl, jobRequest, Object.class);
+		APIUtils.postEntityWithPayloadRequest(targetUrl, jobRequest, "Add foreign keys");
 
 	}
 
@@ -931,9 +896,10 @@ public class DataIntegration {
 	 * @param tableName
 	 * @param dataPoolId
 	 * @param dataModelId
+	 * @throws UserException 
 	 */
-	public void addTableFromPool(String tableName, String dataPoolId, String dataModelId) {
-		RestTemplate restTemplate = new RestTemplate();
+	public void addTableFromPool(String tableName, String dataPoolId, String dataModelId) throws UserException {
+//		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables",
 				dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
@@ -950,8 +916,7 @@ public class DataIntegration {
 		request1.add(request);
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request1.toString(), headers);
-
-		restTemplate.postForEntity(targetUrl, jobRequest, Object.class);
+		APIUtils.postEntityWithPayloadRequest(targetUrl, jobRequest, "Add table to Data Pool");
 	}
 
 	
@@ -968,9 +933,10 @@ public class DataIntegration {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
+	 * @throws UserException 
 	 */
 	public void uploadCSV(PluginContext context, String dataPoolId, String fileLocation, String tableName, String timestampColumn,
-			int chunkSize) throws CsvValidationException, IOException, InterruptedException, ExecutionException {
+			int chunkSize) throws CsvValidationException, IOException, InterruptedException, ExecutionException, UserException {
 		TableSchema tableSchema = getTableConfig(fileLocation, timestampColumn, tableName);
 		String jobId = this.createPushJob(dataPoolId, tableName, tableSchema);
 		this.uploadCsvChunk(context, chunkSize, dataPoolId, jobId, fileLocation);
@@ -993,15 +959,15 @@ public class DataIntegration {
 	 * @param dataPoolId
 	 * @param jobId
 	 * @return
+	 * @throws UserException 
 	 */
-	private String getStatus(String dataPoolId, String jobId) {
-		RestTemplate restTemplate = new RestTemplate();
+	private String getStatus(String dataPoolId, String jobId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/v1/data-push/%s/jobs/" + jobId, dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<Void> jobRequest = new HttpEntity<>(headers);
-		ResponseEntity<String> r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get status of the execution of data job");
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("status");
 	}
@@ -1158,7 +1124,8 @@ public class DataIntegration {
 		HttpEntity<Object> sealRequest = new HttpEntity<>(null, headers);
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setMessageConverters(getJsonMessageConverters());
-		Object re = restTemplate.postForEntity(sealUrl, sealRequest, Object.class);
+	
+		restTemplate.postForEntity(sealUrl, sealRequest, Object.class);
 	}
 
 	/**

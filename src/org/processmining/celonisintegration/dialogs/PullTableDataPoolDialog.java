@@ -19,6 +19,7 @@ import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTa
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
 import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
 import org.processmining.celonisintegration.algorithms.DataIntegration;
+import org.processmining.celonisintegration.algorithms.UserException;
 import org.processmining.celonisintegration.parameters.PullTableDataModelParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMList;
@@ -40,9 +41,10 @@ public class PullTableDataPoolDialog extends JPanel {
 	 * 
 	 * @throws IOException
 	 * @throws CsvValidationException
+	 * @throws UserException 
 	 */
 	public PullTableDataPoolDialog(UIPluginContext context, final PullTableDataModelParameter parameters)
-			throws CsvValidationException, IOException {
+			throws CsvValidationException, IOException, UserException {
 		double size[][] = { { TableLayoutConstants.FILL, TableLayoutConstants.FILL, TableLayoutConstants.FILL },
 				{ TableLayoutConstants.FILL, TableLayoutConstants.MINIMUM } };
 		setLayout(new TableLayout(size));

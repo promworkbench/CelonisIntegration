@@ -43,7 +43,9 @@ public class PullOlapTablePlugin extends PullOlapTableAlgo {
 		PullOlapTableAccessDialog dialog1 = new PullOlapTableAccessDialog(context, parameters);
 		InteractionResult result1 = context.showWizard("Celonis access", true, true, dialog1);
 		if (result1 == InteractionResult.FINISHED) {
+			context.log("Checking validation of login information...");
 			ErrorUtils.checkLoginValidation(parameters.getUrl(), parameters.getToken());
+			context.log("Check validation of login information done");			
 			context.log("Getting the list of OLAP Tables...");
 
 			PullOlapTableWsDialog dialog2 = new PullOlapTableWsDialog(context, parameters);

@@ -747,7 +747,6 @@ public class UploadEventLogDialog extends JPanel {
 		
 
 		ProMComboBox<String> dpCombo = new ProMComboBox<String>(dataPoolNames);
-		dpCombo.setSelectedIndex(0);
 		String dpCol = (String) dpCombo.getSelectedItem();
 		parameters.setDataPoolReplace(dpCol);
 		parameters.setDataPoolStatus(DataPoolStatus.ADD);

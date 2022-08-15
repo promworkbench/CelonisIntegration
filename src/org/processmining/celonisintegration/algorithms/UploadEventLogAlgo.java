@@ -46,13 +46,13 @@ public class UploadEventLogAlgo {
 		String ws = parameters.getWorkspace();
 		String ana = parameters.getAnalysis();
 
-		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE 
+		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE
 				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
 			ws = parameters.getWorkspaceReplace();
 		}
-		
-		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE 
-				||parameters.getAnalysisStatus() == AnalysisStatus.ADD) {
+
+		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE
+				|| parameters.getAnalysisStatus() == AnalysisStatus.ADD) {
 			ana = parameters.getAnalysisReplace();
 		}
 
@@ -65,12 +65,14 @@ public class UploadEventLogAlgo {
 			dataPoolId = celonis.createDataPool(dp);
 			context.log("Creating data model " + dm);
 			dataModelId = celonis.createDataModel(dm, dataPoolId);
-			context.log("Creating workspace " + ws);
-			workspaceId = celonis.createWorkspace(dataModelId, ws);
-			context.log("Creating analysis " + ana);
-			celonis.createAnalysis(workspaceId, ana);
+			if (parameters.getWorkspaceStatus() != WorkspaceStatus.FORBIDDEN) {
+				context.log("Creating workspace " + ws);
+				workspaceId = celonis.createWorkspace(dataModelId, ws);
+				context.log("Creating analysis " + ana);
+				celonis.createAnalysis(workspaceId, ana);
+			}
 		}
-		
+
 		else if (parameters.getDataPoolStatus() == DataPoolStatus.REPLACE) {
 			dp = parameters.getDataPoolReplace();
 			String dpId = celonis.getDataPoolId(dp);
@@ -80,37 +82,41 @@ public class UploadEventLogAlgo {
 			dataPoolId = celonis.createDataPool(dp);
 			context.log("Creating data model " + dm);
 			dataModelId = celonis.createDataModel(dm, dataPoolId);
-			context.log("Creating workspace " + ws);
-			workspaceId = celonis.createWorkspace(dataModelId, ws);
-			context.log("Creating analysis " + ana);
-			celonis.createAnalysis(workspaceId, ana);
-		}
-		
-		else {
-			dp = parameters.getDataPoolReplace();
-			dataPoolId = celonis.getDataPoolId(dp);
-			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {	
-				context.log("Creating data model " + dm);
-				dataModelId = celonis.createDataModel(dm, dataPoolId);
+			if (parameters.getWorkspaceStatus() != WorkspaceStatus.FORBIDDEN) {
 				context.log("Creating workspace " + ws);
 				workspaceId = celonis.createWorkspace(dataModelId, ws);
 				context.log("Creating analysis " + ana);
 				celonis.createAnalysis(workspaceId, ana);
 			}
-			else if (parameters.getDataModelStatus() == DataModelStatus.REPLACE) {
+		}
+
+		else {
+			dp = parameters.getDataPoolReplace();
+			dataPoolId = celonis.getDataPoolId(dp);
+			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {
+				context.log("Creating data model " + dm);
+				dataModelId = celonis.createDataModel(dm, dataPoolId);
+				if (parameters.getWorkspaceStatus() != WorkspaceStatus.FORBIDDEN) {
+					context.log("Creating workspace " + ws);
+					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					context.log("Creating analysis " + ana);
+					celonis.createAnalysis(workspaceId, ana);
+				}
+			} else if (parameters.getDataModelStatus() == DataModelStatus.REPLACE) {
 				dm = parameters.getDataModelReplace();
 				String dmId = celonis.getDataModelId(dp, dm);
 				context.log("Deleting old data model " + dm);
 				celonis.deleteDataModel(dataPoolId, dmId);
 				context.log("Creating data model " + dm);
 				dataModelId = celonis.createDataModel(dm, dataPoolId);
-				context.log("Creating workspace " + ws);
-				workspaceId = celonis.createWorkspace(dataModelId, ws);
-				context.log("Creating analysis " + ana);
-				celonis.createAnalysis(workspaceId, ana);
-				
-			}
-			else {
+				if (parameters.getWorkspaceStatus() != WorkspaceStatus.FORBIDDEN) {
+					context.log("Creating workspace " + ws);
+					workspaceId = celonis.createWorkspace(dataModelId, ws);
+					context.log("Creating analysis " + ana);
+					celonis.createAnalysis(workspaceId, ana);
+				}
+
+			} else {
 				dm = parameters.getDataModelReplace();
 				dataModelId = celonis.getDataModelId(dp, dm);
 				if (parameters.getTableStatus() == TableStatus.REPLACE) {
@@ -119,50 +125,39 @@ public class UploadEventLogAlgo {
 					context.log("Deleting old table " + tableName);
 					celonis.deleteDataModelTable(dataPoolId, dataModelId, tableId);
 				}
-				if (parameters.getWorkspaceStatus() == WorkspaceStatus.NEW) {
-					context.log("Creating workspace " + ws);
-					workspaceId = celonis.createWorkspace(dataModelId, ws);
-					context.log("Creating analysis " + ana);
-					celonis.createAnalysis(workspaceId, ana);
-				}
-				else if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE) {
-					ws = parameters.getWorkspaceReplace();
-					String wsId = celonis.getWorkspaceId(ws);
-					context.log("Deleting old workspace " + ws);
-					celonis.deleteWorkspace(wsId);
-					context.log("Creating workspace " + ws);
-					workspaceId = celonis.createWorkspace(dataModelId, ws);
-					context.log("Creating analysis " + ana);
-					celonis.createAnalysis(workspaceId, ana);
-				}
-				else {
-					ws = parameters.getWorkspaceReplace();
-					workspaceId = celonis.getWorkspaceId(ws);
-					if (parameters.getAnalysisStatus() == AnalysisStatus.NEW) {
+				if (parameters.getWorkspaceStatus() != WorkspaceStatus.FORBIDDEN) {
+					if (parameters.getWorkspaceStatus() == WorkspaceStatus.NEW) {
+						context.log("Creating workspace " + ws);
+						workspaceId = celonis.createWorkspace(dataModelId, ws);
 						context.log("Creating analysis " + ana);
 						celonis.createAnalysis(workspaceId, ana);
-					}
-					else {
-						ana = parameters.getAnalysisReplace();
-						celonis.getAnalysisId(ws, ana);
+					} else if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE) {
+						ws = parameters.getWorkspaceReplace();
+						String wsId = celonis.getWorkspaceId(ws);
+						context.log("Deleting old workspace " + ws);
+						celonis.deleteWorkspace(wsId);
+						context.log("Creating workspace " + ws);
+						workspaceId = celonis.createWorkspace(dataModelId, ws);
+						context.log("Creating analysis " + ana);
+						celonis.createAnalysis(workspaceId, ana);
+					} else {
+						ws = parameters.getWorkspaceReplace();
+						workspaceId = celonis.getWorkspaceId(ws);
+						if (parameters.getAnalysisStatus() == AnalysisStatus.NEW) {
+							context.log("Creating analysis " + ana);
+							celonis.createAnalysis(workspaceId, ana);
+						} else {
+							ana = parameters.getAnalysisReplace();
+							celonis.getAnalysisId(ws, ana);
+						}
 					}
 				}
+
 			}
 		}
-		
+
 		HashMap<String, String> mapping = new HashMap<String, String>();
-		if (dp.length() == 0) {
-			dp = tableName + "_DATAPOOL";
-		}
-		if (dm.length() == 0) {
-			dm = tableName + "_DATAMODEL";
-		}
-		if (ws.length() == 0) {
-			ws = tableName + "_WORKSPACE";
-		}
-		if (ana.length() == 0) {
-			ana = tableName + "_ANALYSIS";
-		}
+		
 		if (!(actColNew.length() == 0)) {
 			mapping.put(actCol, actColNew);
 			actCol = actColNew;
@@ -175,7 +170,7 @@ public class UploadEventLogAlgo {
 			mapping.put(timeCol, timeColNew);
 			timeCol = timeColNew;
 		}
-		
+
 		File actCSV = parameters.getActCSV();
 		context.log("Creating case table...");
 		File caseCSV = XESUtils.createCaseCSV(log, casePrefix);
@@ -186,7 +181,7 @@ public class UploadEventLogAlgo {
 			caseCSV = XESUtils.changeColumnName(caseCSV, mapping);
 		}
 		context.log("Process the request done");
-		
+
 		context.log("Pushing activity table of " + tableName + " to Celonis...");
 		celonis.uploadCSV(context, dataPoolId, actCSV.getPath(), tableName + "_ACTIVITIES", timeCol, 250000);
 		context.log("Pushing activity table of " + tableName + " to Celonis done");
@@ -217,15 +212,13 @@ public class UploadEventLogAlgo {
 		actCSV.delete();
 		caseCSV.delete();
 
-		res = res + "The event log is uploaded to Data Model: " + dm
-				  + " in Data Pool " + dp
-				  + ". The Workspace " + ws
-				  + " corresponding to that Data Model is created with the Analysis " + ana + ".";
+		res = res + "The event log is uploaded to Data Model: " + dm + " in Data Pool " + dp + ". The Workspace " + ws
+				+ " corresponding to that Data Model is created with the Analysis " + ana + ".";
 		if (!message.isEmpty()) {
 			res = res + "There is a warning: " + message;
 		}
-		
+
 		return res;
 	}
-	
+
 }

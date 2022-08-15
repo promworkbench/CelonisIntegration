@@ -371,7 +371,9 @@ public class ProcessAnalytics {
 
 		}
 		if (kpis_inc.length() != 0) {
-			columns += ", ";
+			if (dimensions.length() != 0) {
+				columns += ", ";
+			}			
 			for (int i = 0; i < kpis_inc.length(); i++) {
 				JSONObject kpi = kpis_inc.getJSONObject(i);
 				String text = kpi.getString("text");
@@ -491,9 +493,10 @@ public class ProcessAnalytics {
 		String tableId = this.getTableIdByTranslatedName(tableName, sheetId);
 
 		String queryId = this.getQueryId(context, anaId, sheetId, tableId);
-
+		context.log("Processing the query...");
 		while (true) {
 			String status = this.getExportStatus(anaId, queryId);
+			context.log("Query status is " + status + "...");
 			if (status.equals("DONE")) {
 				break;
 			}

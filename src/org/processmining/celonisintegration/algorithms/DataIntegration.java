@@ -44,6 +44,13 @@ public class DataIntegration {
 	private List<DataPool> dataPools;
 	private List<DataModel> dataModels;
 	private List<DataModelTable> dataModelTables;
+	private Boolean permissionDataIntegration;
+	private Boolean permissionProcessAnalytics;
+
+	public static final String SERVICE_NAME_DATA_INTEGRATION = "event-collection";
+	public static final String SERVICE_NAME_PROCESS_ANALYTICS = "process-analytics";
+	public static final String PERMISSION_CREATE_DATA_POOL = "CREATE_DATA_POOL";
+	public static final String PERMISSION_CREATE_WORKSPACE = "CREATE_WORKSPACE";
 
 	public DataIntegration(String url, String apiToken) throws UserException {
 		this.url = url;
@@ -53,11 +60,33 @@ public class DataIntegration {
 		this.dataPools = new ArrayList<DataPool>();
 		this.dataModels = new ArrayList<DataModel>();
 		this.dataModelTables = new ArrayList<DataModelTable>();
-		
-		this.updateWorkspaces();
-		this.updateAnalyses();
+		this.permissionDataIntegration = true;
+		this.permissionProcessAnalytics = true;
+
+		this.updatePermission();
+		if (this.permissionProcessAnalytics) {
+			this.updateWorkspaces();
+			this.updateAnalyses();
+		}		
 		this.updateDataPools();
 		this.updateDataModels();
+		
+	}
+
+	public Boolean getPermissionDataIntegration() {
+		return permissionDataIntegration;
+	}
+
+	public void setPermissionDataIntegration(Boolean permissionDataIntegration) {
+		this.permissionDataIntegration = permissionDataIntegration;
+	}
+
+	public Boolean getPermissionProcessAnalytics() {
+		return permissionProcessAnalytics;
+	}
+
+	public void setPermissionProcessAnalytics(Boolean permissionProcessAnalytics) {
+		this.permissionProcessAnalytics = permissionProcessAnalytics;
 	}
 
 	public List<Workspace> getWorkspaces() {
@@ -99,7 +128,7 @@ public class DataIntegration {
 	public void setDataModelTables(List<DataModelTable> dataModelTables) {
 		this.dataModelTables = dataModelTables;
 	}
-	
+
 	public String getDataPoolId(String dpName) {
 		String res = "";
 		for (DataPool dp : this.getDataPools()) {
@@ -109,21 +138,21 @@ public class DataIntegration {
 		}
 		return res;
 	}
-	
+
 	public String getDataModelId(String dpName, String dmName) {
 		String res = "";
-		for (DataModel dm: this.getDataModels()) {
+		for (DataModel dm : this.getDataModels()) {
 			if (dm.getDp().getName().equals(dpName) && dm.getName().equals(dmName)) {
 				return dm.getId();
 			}
 		}
 		return res;
 	}
-	
+
 	public String getDataModeTablelId(String dpName, String dmName, String table) {
 		String res = "";
 		DataModel dmO = new CelonisObject().new DataModel();
-		for (DataModel dm: this.getDataModels()) {
+		for (DataModel dm : this.getDataModels()) {
 			if (dm.getDp().getName().equals(dpName) && dm.getName().equals(dmName)) {
 				dmO = dm;
 			}
@@ -135,25 +164,86 @@ public class DataIntegration {
 		}
 		return res;
 	}
-	
+
 	public String getWorkspaceId(String wsName) {
 		String res = "";
-		for (Workspace ws: this.getWorkspaces()) {
+		for (Workspace ws : this.getWorkspaces()) {
 			if (ws.getName().equals(wsName)) {
 				return ws.getId();
 			}
 		}
 		return res;
 	}
-	
+
 	public String getAnalysisId(String wsName, String anaName) {
-		String res = "";		
-		for (Analysis ana: this.getAnalyses()) {
+		String res = "";
+		for (Analysis ana : this.getAnalyses()) {
 			if (ana.getWorkspace().getName().equals(wsName) && ana.getName().equals(anaName)) {
 				return ana.getId();
 			}
 		}
 		return res;
+	}
+
+	public void updatePermission() throws UserException {
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + this.apiToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> r;
+
+		String targetUrl = this.url + "/integration/api/pools";
+		try {
+			r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+		} catch (Exception e) {
+			this.permissionDataIntegration = false;
+		}
+		if (!this.permissionDataIntegration) {
+			throw new UserException("No permission to access Data Integration");
+		} else {
+			targetUrl = this.url + "/process-mining/api/processes";
+			try {
+				r = restTemplate.exchange(targetUrl, HttpMethod.GET, jobRequest, String.class);
+			} catch (Exception e) {
+				this.permissionProcessAnalytics = false;
+			}
+			if (this.permissionProcessAnalytics) {
+				targetUrl = this.url + "/api/cloud/permissions";
+				r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get permissions");
+				JSONArray body = new JSONArray(r.getBody());
+				Boolean perDI = false;
+				Boolean perPA = false;
+				for (int i = 0; i < body.length(); i++) {
+					JSONObject perObject = body.getJSONObject(i);
+					if (perObject.getString("serviceName").equals(SERVICE_NAME_DATA_INTEGRATION)) {
+						JSONArray permissions = perObject.getJSONArray("permissions");
+						for (int j = 0; j < permissions.length(); j++) {
+							if (permissions.get(j).toString().equals(PERMISSION_CREATE_DATA_POOL)) {
+								perDI = true;
+							}
+						}
+					}
+					if (perObject.getString("serviceName").equals(SERVICE_NAME_PROCESS_ANALYTICS)) {
+						JSONArray permissions = perObject.getJSONArray("permissions");
+						for (int j = 0; j < permissions.length(); j++) {
+							if (permissions.get(j).toString().equals(PERMISSION_CREATE_WORKSPACE)) {
+								perPA = true;
+							}
+						}
+					}
+
+				}
+				if (!perDI) {
+					this.permissionDataIntegration = false;
+				}
+				if (!perPA) {
+					this.permissionProcessAnalytics = false;
+				}
+			}
+		}
+
 	}
 
 	public void updateWorkspaces() throws UserException {
@@ -175,8 +265,6 @@ public class DataIntegration {
 	}
 
 	public void updateAnalyses() throws UserException {
-
-
 		String targetUrl = this.url + "/process-mining/api/analysis";
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + this.apiToken);
@@ -245,19 +333,19 @@ public class DataIntegration {
 							if (processConfig.get("activityTableId") != JSONObject.NULL) {
 								actTableId.add(processConfig.getString("activityTableId"));
 							}
-							
+
 						}
-						
+
 						if (processConfig.has("caseTableId")) {
 							if (processConfig.get("caseTableId") != JSONObject.NULL) {
 								caseTableId.add(processConfig.getString("caseTableId"));
 							}
-							
+
 						}
 					}
-					
+
 				}
-				
+
 				List<DataModelTable> tables = new ArrayList<DataModelTable>();
 
 				for (int j = 0; j < tablesJSON.length(); j++) {
@@ -266,8 +354,7 @@ public class DataIntegration {
 					DataModelTableType tableType = DataModelTableType.NORMAL;
 					if (actTableId.contains(idTable)) {
 						tableType = DataModelTableType.ACTIVITY;
-					}
-					else if (caseTableId.contains(idTable)) {
+					} else if (caseTableId.contains(idTable)) {
 						tableType = DataModelTableType.CASE;
 					}
 					tables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
@@ -277,9 +364,10 @@ public class DataIntegration {
 			}
 		}
 
-	}	
-	
-	public List<String[]> getForeignKey(String dpId, String dmId, String actTableName, String caseTableName) throws UserException {
+	}
+
+	public List<String[]> getForeignKey(String dpId, String dmId, String actTableName, String caseTableName)
+			throws UserException {
 		List<String[]> res = new ArrayList<String[]>();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
@@ -293,9 +381,9 @@ public class DataIntegration {
 		JSONArray tables = body.getJSONArray("tables");
 		String caseTableId = "";
 		String actTableId = "";
-		
+
 		for (int i = 0; i < tables.length(); i++) {
-			JSONObject table= tables.getJSONObject(i);
+			JSONObject table = tables.getJSONObject(i);
 			if (table.getString("aliasOrName").equals(actTableName)) {
 				actTableId = table.getString("id");
 			}
@@ -303,28 +391,27 @@ public class DataIntegration {
 				caseTableId = table.getString("id");
 			}
 		}
-		
+
 		if (foreignKeys.length() > 0) {
 			for (int i = 0; i < foreignKeys.length(); i++) {
 				JSONObject obj = foreignKeys.getJSONObject(i);
-				if (obj.getString("sourceTableId").equals(actTableId) 
+				if (obj.getString("sourceTableId").equals(actTableId)
 						&& obj.getString("targetTableId").equals(caseTableId)) {
 					JSONArray colsJson = obj.getJSONArray("columns");
-					
-					for (int j = 0; j < colsJson.length(); j++){
+
+					for (int j = 0; j < colsJson.length(); j++) {
 						String[] cols = new String[2];
 						JSONObject obj1 = colsJson.getJSONObject(j);
 						cols[0] = obj1.getString("sourceColumnName");
 						cols[1] = obj1.getString("targetColumnName");
 						res.add(cols);
 					}
-					
-				}
-				else if (obj.getString("targetTableId").equals(actTableId) 
+
+				} else if (obj.getString("targetTableId").equals(actTableId)
 						&& obj.getString("sourceTableId").equals(caseTableId)) {
 					JSONArray colsJson = obj.getJSONArray("columns");
-					
-					for (int j = 0; j < colsJson.length(); j++){
+
+					for (int j = 0; j < colsJson.length(); j++) {
 						String[] cols = new String[2];
 						JSONObject obj1 = colsJson.getJSONObject(j);
 						cols[1] = obj1.getString("sourceColumnName");
@@ -333,15 +420,15 @@ public class DataIntegration {
 						System.out.println(cols[1]);
 						res.add(cols);
 					}
-					
+
 				}
 			}
 		}
-		
+
 		return res;
-		
+
 	}
-	
+
 	public String getCaseTableName(String dpId, String dmId, String tableName) throws UserException {
 		String res = "";
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
@@ -357,9 +444,9 @@ public class DataIntegration {
 		JSONObject processConfig = new JSONObject();
 		String caseTableId = "";
 		String actTableId = "";
-		
+
 		for (int i = 0; i < tables.length(); i++) {
-			JSONObject table= tables.getJSONObject(i);
+			JSONObject table = tables.getJSONObject(i);
 			if (table.getString("aliasOrName").equals(tableName)) {
 				actTableId = table.getString("id");
 				break;
@@ -372,24 +459,23 @@ public class DataIntegration {
 				break;
 			}
 		}
-		
-		
+
 		if (processConfig.getString("caseTableId") != JSONObject.NULL) {
 			caseTableId = processConfig.getString("caseTableId");
 		}
-		
+
 		for (int i = 0; i < tables.length(); i++) {
-			JSONObject table= tables.getJSONObject(i);
+			JSONObject table = tables.getJSONObject(i);
 			if (table.getString("id").equals(caseTableId)) {
 				return table.getString("aliasOrName");
 			}
 		}
 		return res;
-		
+
 	}
-	
-	public String getCsv(PluginContext context, String dpId, String dmId, String tableName, 
-			Boolean isMerged, String caseTable, List<String> keyCaseCol) throws Exception {
+
+	public String getCsv(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged,
+			String caseTable, List<String> keyCaseCol) throws Exception {
 		String queryId = this.getQueryId(context, dpId, dmId, tableName, isMerged, caseTable, keyCaseCol);
 		String status = "";
 		int delay = 0;
@@ -454,13 +540,13 @@ public class DataIntegration {
 		return body.getString("exportStatus");
 	}
 
-	public String getQueryId(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged, String caseTable, List<String> keyCaseCol) throws UserException {
+	public String getQueryId(PluginContext context, String dpId, String dmId, String tableName, Boolean isMerged,
+			String caseTable, List<String> keyCaseCol) throws UserException {
 		String query = "";
 		context.log("Extracting PQL query of the table...");
 		if (isMerged) {
 			query = this.getMergePullingQuery(dpId, dmId, tableName, caseTable, keyCaseCol);
-		}
-		else {
+		} else {
 			query = this.getPullingQuery(dpId, dmId, tableName);
 		}
 		context.log("Extract PQL query of the table done");
@@ -520,11 +606,12 @@ public class DataIntegration {
 		return res;
 	}
 
-	public String getMergePullingQuery(String dpId, String dmId, String actTable, String caseTable, List<String> keyCaseCol) throws UserException {
+	public String getMergePullingQuery(String dpId, String dmId, String actTable, String caseTable,
+			List<String> keyCaseCol) throws UserException {
 		String res = "TABLE( ";
 		String tableId = this.getTableByName(actTable, dmId, dpId);
 		String caseTableId = this.getTableByName(caseTable, dmId, dpId);
-		
+
 		List<String> actCols = getColumns(dpId, dmId, tableId);
 		List<String> caseCols = getColumns(dpId, dmId, caseTableId);
 		String q = "";
@@ -543,8 +630,7 @@ public class DataIntegration {
 			q += "\"";
 			if (i != actCols.size() - 1) {
 				q += ", ";
-			}
-			else {
+			} else {
 				if (caseCols.size() != 0) {
 					q += ", ";
 				}
@@ -570,8 +656,8 @@ public class DataIntegration {
 				if (i != caseCols.size() - 1) {
 					q += ", ";
 				}
-			}			
-			
+			}
+
 		}
 
 		res += q;
@@ -579,7 +665,7 @@ public class DataIntegration {
 		System.out.println(res);
 		return res;
 	}
-	
+
 	public List<String> getColumns(String dpId, String dmId, String tableId) throws UserException {
 		List<String> res = new ArrayList<String>();
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables/" + tableId
@@ -589,7 +675,8 @@ public class DataIntegration {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
-		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get columns in tables in data model");
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest,
+				"Get columns in tables in data model");
 		JSONArray body = new JSONArray(r.getBody());
 
 		for (int i = 0; i < body.length(); i++) {
@@ -598,7 +685,7 @@ public class DataIntegration {
 		}
 		return res;
 	}
-	
+
 	public void deleteDataPool(String dpId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId;
 		HttpHeaders headers = new HttpHeaders();
@@ -607,7 +694,7 @@ public class DataIntegration {
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Data Pool");
 	}
-	
+
 	public void deleteDataModel(String dpId, String dmId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-models/" + dmId;
 		HttpHeaders headers = new HttpHeaders();
@@ -616,7 +703,7 @@ public class DataIntegration {
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Data Model");
 	}
-	
+
 	public void deleteDataModelTable(String dpId, String dmId, String tableId) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools/" + dpId + "/data-model/" + dmId + "/tables/" + tableId;
 		HttpHeaders headers = new HttpHeaders();
@@ -625,7 +712,7 @@ public class DataIntegration {
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Table in Data Model");
 	}
-	
+
 	public void deleteWorkspace(String wsId) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes" + wsId;
 		HttpHeaders headers = new HttpHeaders();
@@ -634,7 +721,7 @@ public class DataIntegration {
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Workspace");
 	}
-	
+
 	public void deleteAnalysis(String anaId) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/analysis" + anaId;
 		HttpHeaders headers = new HttpHeaders();
@@ -643,13 +730,13 @@ public class DataIntegration {
 		HttpEntity<String> jobRequest = new HttpEntity<String>(headers);
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Analysis");
 	}
-	
+
 	/**
 	 * Create a new data pool in Celonis
 	 * 
 	 * @param name
 	 * @return
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public String createDataPool(String name) throws UserException {
 		String targetUrl = this.url + "/integration/api/pools";
@@ -673,7 +760,7 @@ public class DataIntegration {
 	 * @param modelName
 	 * @param dataPoolId
 	 * @return
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public String createDataModel(String modelName, String dataPoolId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models", dataPoolId);
@@ -698,7 +785,7 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param name
 	 * @return
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public String createWorkspace(String dataModelId, String name) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/processes";
@@ -712,12 +799,12 @@ public class DataIntegration {
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
 		ResponseEntity<String> r = APIUtils.postStringRequest(targetUrl, jobRequest, "Create new Workspace");
-		
+
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("id");
 
 	}
-	
+
 	public String createAnalysis(String workspaceId, String name) throws UserException {
 		String targetUrl = this.url + "/process-mining/api/analysis";
 		HttpHeaders headers = new HttpHeaders();
@@ -746,7 +833,7 @@ public class DataIntegration {
 	 * @param caseIdColumn
 	 * @param actColumn
 	 * @param timestampColumn
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public void addProcessConfiguration(String dataModelId, String dataPoolId, String actTable, String caseTable,
 			String caseIdColumn, String actColumn, String timestampColumn) throws UserException {
@@ -778,10 +865,11 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param dataPoolId
 	 * @throws InterruptedException
-	 * @throws UserException 
-	 * @throws JSONException 
+	 * @throws UserException
+	 * @throws JSONException
 	 */
-	public String reloadDataModel(String dataModelId, String dataPoolId) throws InterruptedException, JSONException, UserException {
+	public String reloadDataModel(String dataModelId, String dataPoolId)
+			throws InterruptedException, JSONException, UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-models/" + dataModelId + "/reload",
 				dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
@@ -793,7 +881,7 @@ public class DataIntegration {
 
 		HttpEntity<String> jobRequest = new HttpEntity<String>(request.toString(), headers);
 		APIUtils.postEntityWithPayloadRequest(targetUrl, jobRequest, "Reload data model");
-		
+
 		String status = "RUNNING";
 		String message = "";
 
@@ -812,11 +900,10 @@ public class DataIntegration {
 
 		}
 		if (status.equals("ERROR")) {
-			throw new UserException(message);			
-		}
-		else {
+			throw new UserException(message);
+		} else {
 			return message;
-		} 
+		}
 	}
 
 	/**
@@ -826,7 +913,7 @@ public class DataIntegration {
 	 * @param dataModelId
 	 * @param dataPoolId
 	 * @return
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public String getTableByName(String tableName, String dataModelId, String dataPoolId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables",
@@ -836,7 +923,7 @@ public class DataIntegration {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
-		ResponseEntity<String> r =APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get Table ID");
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get Table ID");
 		JSONArray body = new JSONArray(r.getBody());
 
 		String res = "";
@@ -861,7 +948,7 @@ public class DataIntegration {
 	 * @param column2
 	 * @param dataModelId
 	 * @param dataPoolId
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public void addForeignKeys(String table1, String column1, String table2, String column2, String dataModelId,
 			String dataPoolId) throws UserException {
@@ -896,10 +983,10 @@ public class DataIntegration {
 	 * @param tableName
 	 * @param dataPoolId
 	 * @param dataModelId
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	public void addTableFromPool(String tableName, String dataPoolId, String dataModelId) throws UserException {
-//		RestTemplate restTemplate = new RestTemplate();
+		//		RestTemplate restTemplate = new RestTemplate();
 		String targetUrl = String.format(this.url + "/integration/api/pools/%s/data-model/" + dataModelId + "/tables",
 				dataPoolId);
 		HttpHeaders headers = new HttpHeaders();
@@ -919,8 +1006,6 @@ public class DataIntegration {
 		APIUtils.postEntityWithPayloadRequest(targetUrl, jobRequest, "Add table to Data Pool");
 	}
 
-	
-
 	/**
 	 * Upload the CSV file to Celonis
 	 * 
@@ -933,10 +1018,11 @@ public class DataIntegration {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
-	 * @throws UserException 
+	 * @throws UserException
 	 */
-	public void uploadCSV(PluginContext context, String dataPoolId, String fileLocation, String tableName, String timestampColumn,
-			int chunkSize) throws CsvValidationException, IOException, InterruptedException, ExecutionException, UserException {
+	public void uploadCSV(PluginContext context, String dataPoolId, String fileLocation, String tableName,
+			String timestampColumn, int chunkSize)
+			throws CsvValidationException, IOException, InterruptedException, ExecutionException, UserException {
 		TableSchema tableSchema = getTableConfig(fileLocation, timestampColumn, tableName);
 		String jobId = this.createPushJob(dataPoolId, tableName, tableSchema);
 		this.uploadCsvChunk(context, chunkSize, dataPoolId, jobId, fileLocation);
@@ -959,7 +1045,7 @@ public class DataIntegration {
 	 * @param dataPoolId
 	 * @param jobId
 	 * @return
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	private String getStatus(String dataPoolId, String jobId) throws UserException {
 		String targetUrl = String.format(this.url + "/integration/api/v1/data-push/%s/jobs/" + jobId, dataPoolId);
@@ -967,7 +1053,8 @@ public class DataIntegration {
 		headers.add("Authorization", "Bearer " + this.apiToken);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> jobRequest = new HttpEntity<>(headers);
-		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest, "Get status of the execution of data job");
+		ResponseEntity<String> r = APIUtils.getWithPayloadRequest(targetUrl, jobRequest,
+				"Get status of the execution of data job");
 		JSONObject body = new JSONObject(r.getBody());
 		return body.getString("status");
 	}
@@ -1017,17 +1104,17 @@ public class DataIntegration {
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	private void uploadCsvChunk(PluginContext context, int chunkSize, String dataPoolId, String jobId, String fileLocation)
-			throws CsvValidationException, IOException, InterruptedException, ExecutionException {
+	private void uploadCsvChunk(PluginContext context, int chunkSize, String dataPoolId, String jobId,
+			String fileLocation) throws CsvValidationException, IOException, InterruptedException, ExecutionException {
 		context.log("Dividing event log into chunks...");
 		List<String> chunksLocation = divideChunks(fileLocation, chunkSize);
 		context.log("Divide event log into chunks done");
 		int chunkLength = chunksLocation.size();
-		for (String chunkLocation: chunksLocation) {
+		for (String chunkLocation : chunksLocation) {
 			context.log(chunkLength + " chunks left...");
 			uploadFile(dataPoolId, jobId, chunkLocation);
 			context.log("Finish pushing chunk at " + chunkLocation);
-			chunkLength -= 1;			
+			chunkLength -= 1;
 		}
 		for (String chunk : chunksLocation) {
 			File tempFile = new File(chunk);
@@ -1124,7 +1211,7 @@ public class DataIntegration {
 		HttpEntity<Object> sealRequest = new HttpEntity<>(null, headers);
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setMessageConverters(getJsonMessageConverters());
-	
+
 		restTemplate.postForEntity(sealUrl, sealRequest, Object.class);
 	}
 

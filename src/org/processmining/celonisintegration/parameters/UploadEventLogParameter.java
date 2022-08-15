@@ -46,7 +46,7 @@ public class UploadEventLogParameter extends PluginParametersImpl {
 		NEW, REPLACE, ADD
 	}
 	public enum WorkspaceStatus {
-		NEW, REPLACE, ADD
+		NEW, REPLACE, ADD, FORBIDDEN
 	}
 	public enum AnalysisStatus {
 		NEW, REPLACE, ADD

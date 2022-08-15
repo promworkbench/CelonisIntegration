@@ -125,6 +125,69 @@ public class ErrorUtils {
 		
 	}
 	
+	
+	public static void checkParameterWithoutWsUpload(DataIntegration celonis, UploadEventLogParameter parameters) throws Exception {
+		if (parameters.getDataPoolStatus() == DataPoolStatus.NEW) {
+			for (DataPool dp: celonis.getDataPools()) {
+				if (dp.getName().equals(parameters.getDataPool())) {
+					throw new UserException("Data Pool name \"" + parameters.getDataPool() + "\" is already taken.");
+				}
+			}
+		}
+		else if (parameters.getDataPoolStatus() == DataPoolStatus.ADD){
+			if (parameters.getDataModelStatus() == DataModelStatus.NEW) {
+				for (DataModel dm: celonis.getDataModels()) {
+					if (dm.getDp().getName().equals(parameters.getDataPoolReplace()) && dm.getName().equals(parameters.getDataModel())) {
+						throw new UserException("Data Model name \"" + parameters.getDataModel() + 
+								"\" is already taken in the " + parameters.getDataPoolReplace() + " Data Pool");
+					}
+				}
+			}
+			else if (parameters.getDataModelStatus() == DataModelStatus.ADD) {
+				if (parameters.getTableStatus() == TableStatus.NEW) {
+					for (DataModelTable table: celonis.getDataModelTables()) {
+						String dmId = celonis.getDataModelId(parameters.getDataPoolReplace(), parameters.getDataModelReplace());
+						if (table.getDmId().equals(dmId) && table.getName().equals(parameters.getTableName())) {
+							throw new UserException("Table name \"" + parameters.getTableName() + 
+									"\" is already taken in the " + parameters.getDataModelReplace() + " Data Model");
+						}
+					}
+				}
+			}
+		}
+		if (parameters.getDataPoolStatus() == DataPoolStatus.REPLACE || parameters.getDataPoolStatus() == DataPoolStatus.ADD) {
+			if (parameters.getDataPoolReplace() == null) {
+				throw new UserException("Data Pool name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getDataPool().replaceAll(" ", "").equals("")) {
+				throw new UserException("Data Pool name can not be empty");
+			}
+		}
+		if (parameters.getDataModelStatus() == DataModelStatus.REPLACE || parameters.getDataModelStatus() == DataModelStatus.ADD) {
+			if (parameters.getDataModelReplace() == null) {
+				throw new UserException("Data Model name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getDataModel().replaceAll(" ", "").equals("")) {
+				throw new UserException("Data Model name can not be empty");
+			}
+		}
+		if (parameters.getTableStatus() == TableStatus.REPLACE) {
+			if (parameters.getTableNameReplace() == null) {
+				throw new UserException("Table name can not be empty");
+			}
+		}
+		else {
+			if (parameters.getTableName().replaceAll(" ", "").equals("")) {
+				throw new UserException("Table name can not be empty");
+			}
+		}
+		
+	}
+	
 	public static void checkUniqueColumn(String caseCol, String actCol) throws UserException {
 		if (caseCol.equals(actCol)) {
 			throw new UserException("Case ID column and Activity column must be different");

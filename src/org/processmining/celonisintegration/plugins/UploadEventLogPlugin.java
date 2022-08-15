@@ -10,6 +10,7 @@ import org.processmining.celonisintegration.algorithms.UploadEventLogAlgo;
 import org.processmining.celonisintegration.algorithms.XESUtils;
 import org.processmining.celonisintegration.dialogs.UploadEventLogAccessDialog;
 import org.processmining.celonisintegration.dialogs.UploadEventLogDialog;
+import org.processmining.celonisintegration.dialogs.UploadEventLogWithoutWsDialog;
 import org.processmining.celonisintegration.help.YourHelp;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
@@ -53,21 +54,40 @@ public class UploadEventLogPlugin extends UploadEventLogAlgo {
 			context.log("Getting information about the workspaces, analyses, data pools, data models, tables...");
 			DataIntegration di = new DataIntegration(parameters.getUrl(), parameters.getToken());
 			context.log("Get information about the workspaces, analyses, data pools, data models, tables done");		
-			
-			UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters, log, di);
-			InteractionResult result1 = context.showWizard("Upload event log to Celonis", true, true, dialog1);
-			if (result1 == InteractionResult.FINISHED) {	
-				context.log("Checking validation of parameters...");
-				ErrorUtils.checkParameterUpload(di, parameters);
-				ErrorUtils.checkUniqueColumn(parameters.getCaseCol(), parameters.getActCol());
-				context.log("Check validation of parameters done");							
-				context.getProgress().inc();
-				return runConnections(context, log, parameters);	
+			if (!di.getPermissionProcessAnalytics()) {
+				context.log("No permission to access Process Analytics");
+				UploadEventLogWithoutWsDialog dialog1 = new UploadEventLogWithoutWsDialog(context, parameters, log, di);
+				InteractionResult result1 = context.showWizard("Upload event log to Celonis", true, true, dialog1);
+				if (result1 == InteractionResult.FINISHED) {	
+					context.log("Checking validation of parameters...");
+					ErrorUtils.checkParameterWithoutWsUpload(di, parameters);
+					ErrorUtils.checkUniqueColumn(parameters.getCaseCol(), parameters.getActCol());
+					context.log("Check validation of parameters done");							
+					context.getProgress().inc();
+					return runConnections(context, log, parameters);	
+				}
+				else {
+			    	context.getFutureResult(0).cancel(true);
+				    return null;
+			    }
 			}
 			else {
-		    	context.getFutureResult(0).cancel(true);
-			    return null;
-		    }
+				UploadEventLogDialog dialog1 = new UploadEventLogDialog(context, parameters, log, di);
+				InteractionResult result1 = context.showWizard("Upload event log to Celonis", true, true, dialog1);
+				if (result1 == InteractionResult.FINISHED) {	
+					context.log("Checking validation of parameters...");
+					ErrorUtils.checkParameterUpload(di, parameters);
+					ErrorUtils.checkUniqueColumn(parameters.getCaseCol(), parameters.getActCol());
+					context.log("Check validation of parameters done");							
+					context.getProgress().inc();
+					return runConnections(context, log, parameters);	
+				}
+				else {
+			    	context.getFutureResult(0).cancel(true);
+				    return null;
+			    }
+			}
+			
 		}
 		else {
 	    	context.getFutureResult(0).cancel(true);

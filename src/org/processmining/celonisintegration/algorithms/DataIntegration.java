@@ -895,7 +895,10 @@ public class DataIntegration {
 
 			JSONObject body = new JSONObject(r.getBody());
 			status = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("loadStatus");
-			message = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("message");
+			if (!body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").get("message").equals(null) ) {
+				message = body.getJSONObject("loadInfo").getJSONObject("currentComputeLoad").getString("message");
+			}
+			
 			TimeUnit.SECONDS.sleep(3);
 
 		}

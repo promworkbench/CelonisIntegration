@@ -218,8 +218,7 @@ public class UploadEventLogAlgo {
 		actCSV.delete();
 		caseCSV.delete();
 
-		res = res + "The event log is uploaded to Data Model: " + dm + " in Data Pool " + dp + ". The Workspace " + ws
-				+ " corresponding to that Data Model is created with the Analysis " + ana + ".";
+		res = res + "The event log is uploaded to Celonis.";
 		if (!message.isEmpty()) {
 			res = res + "There is a warning: " + message;
 		}

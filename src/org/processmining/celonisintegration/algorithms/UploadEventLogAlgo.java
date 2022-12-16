@@ -8,6 +8,9 @@ import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.AnalysisStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataPoolStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.PackageStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.SAnalysisStatus;
+import org.processmining.celonisintegration.parameters.UploadEventLogParameter.SpaceStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.TableStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.WorkspaceStatus;
 import org.processmining.framework.plugin.PluginContext;
@@ -157,7 +160,7 @@ public class UploadEventLogAlgo {
 		}
 
 		HashMap<String, String> mapping = new HashMap<String, String>();
-		
+
 		if (!(actColNew.length() == 0)) {
 			mapping.put(actCol, actColNew);
 			actCol = actColNew;
@@ -216,6 +219,56 @@ public class UploadEventLogAlgo {
 				+ " corresponding to that Data Model is created with the Analysis " + ana + ".";
 		if (!message.isEmpty()) {
 			res = res + "There is a warning: " + message;
+		}
+
+		/*---- Studio ----*/
+		Studio studio = new Studio(url, token);
+		if (parameters.getSpaceStatus() == SpaceStatus.NEW) {
+			context.log("Creating new space " + parameters.getSpaceNew());
+			String spaceId = studio.createSpace(parameters.getSpaceNew());
+			context.log("Creating new package " + parameters.getPackageNameNew());
+			String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
+					spaceId);
+			context.log("Creating new analysis " + parameters.getsAnalysisNew());
+			studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
+					parameters.getPackageNameNew(), packageId, dataModelId);
+		} else if (parameters.getSpaceStatus() == SpaceStatus.REPLACE) {
+			context.log("Deleting the space " + parameters.getSpaceCombo().getName());
+			studio.deleteSpace(parameters.getSpaceCombo().getId());
+			context.log("Creating a new space " + parameters.getSpaceCombo().getName());
+			String spaceId = studio.createSpace(parameters.getSpaceCombo().getName());
+			context.log("Creating new package " + parameters.getPackageNameNew());
+			String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
+					spaceId);
+			context.log("Creating new analysis " + parameters.getsAnalysisNew());
+			studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
+					parameters.getPackageNameNew(), packageId, dataModelId);
+		} else if (parameters.getSpaceStatus() == SpaceStatus.ADD) {
+			String spaceId = parameters.getSpaceCombo().getId();
+			if (parameters.getPackageStatus() == PackageStatus.NEW) {
+				context.log("Creating new package " + parameters.getPackageNameNew());
+				String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
+						spaceId);
+				context.log("Creating new analysis " + parameters.getsAnalysisNew());
+				studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
+						parameters.getPackageNameNew(), packageId, dataModelId);
+			} else if (parameters.getPackageStatus() == PackageStatus.REPLACE) {
+				context.log("Deleting the package " + parameters.getPackageNameNew());
+				studio.deletePackage(parameters.getPackageCombo().getId());
+				context.log("Creating new package " + parameters.getPackageNameNew());
+				String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
+						spaceId);
+				context.log("Creating new analysis " + parameters.getsAnalysisNew());
+				studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
+						parameters.getPackageNameNew(), packageId, dataModelId);
+			} else if (parameters.getPackageStatus() == PackageStatus.ADD) {
+				String packageId = parameters.getPackageCombo().getId();
+				if (parameters.getsAnalysisStatus() == SAnalysisStatus.NEW) {
+					context.log("Creating new analysis " + parameters.getsAnalysisNew());
+					studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
+							parameters.getPackageNameNew(), packageId, dataModelId);
+				} 
+			}
 		}
 
 		return res;

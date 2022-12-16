@@ -17,13 +17,12 @@ import javax.swing.event.DocumentListener;
 
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.model.XLog;
-import org.processmining.celonisintegration.algorithms.CelonisObject;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
 import org.processmining.celonisintegration.algorithms.DataIntegration;
 import org.processmining.celonisintegration.algorithms.XESUtils;
+import org.processmining.celonisintegration.objects.dataintegration.DataModel;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable.DataModelTableType;
+import org.processmining.celonisintegration.objects.dataintegration.DataPool;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataPoolStatus;
@@ -72,7 +71,7 @@ public class UploadEventLogWithoutWsDialog  extends JPanel{
 		tableNames = new ArrayList<String>();
 		dataModels = new ArrayList<DataModel>();
 		currentDataPool = "";
-		currentDataModel = new CelonisObject().new DataModel();
+		currentDataModel = new DataModel();
 
 		updateDataPool(di);
 		if (dataPoolNames.size() > 0) {

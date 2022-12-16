@@ -14,12 +14,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
 import org.processmining.celonisintegration.algorithms.DataIntegration;
 import org.processmining.celonisintegration.algorithms.UserException;
+import org.processmining.celonisintegration.objects.dataintegration.DataModel;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable.DataModelTableType;
+import org.processmining.celonisintegration.objects.dataintegration.DataPool;
 import org.processmining.celonisintegration.parameters.PullTableDataModelParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMList;

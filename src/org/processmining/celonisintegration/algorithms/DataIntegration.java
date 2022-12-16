@@ -13,12 +13,12 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTableType;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
+import org.processmining.celonisintegration.objects.dataintegration.DataModel;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable.DataModelTableType;
+import org.processmining.celonisintegration.objects.dataintegration.DataPool;
+import org.processmining.celonisintegration.objects.processanalytics.Analysis;
+import org.processmining.celonisintegration.objects.processanalytics.Workspace;
 import org.processmining.framework.plugin.PluginContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
@@ -151,7 +151,7 @@ public class DataIntegration {
 
 	public String getDataModeTablelId(String dpName, String dmName, String table) {
 		String res = "";
-		DataModel dmO = new CelonisObject().new DataModel();
+		DataModel dmO = new DataModel();
 		for (DataModel dm : this.getDataModels()) {
 			if (dm.getDp().getName().equals(dpName) && dm.getName().equals(dmName)) {
 				dmO = dm;
@@ -260,7 +260,7 @@ public class DataIntegration {
 			String name = ws.getString("name");
 			String id = ws.getString("id");
 			String dmId = ws.getString("dataModelId");
-			this.workspaces.add(new CelonisObject().new Workspace(name, id, dmId));
+			this.workspaces.add(new Workspace(name, id, dmId));
 		}
 	}
 
@@ -279,7 +279,7 @@ public class DataIntegration {
 				if (ana.getString("parentObjectId").equals(ws.getId())) {
 					String name = ana.getString("name");
 					String id = ana.getString("id");
-					this.analyses.add(new CelonisObject().new Analysis(name, id, ws));
+					this.analyses.add(new Analysis(name, id, ws));
 					break;
 				}
 			}
@@ -301,7 +301,7 @@ public class DataIntegration {
 			JSONObject obj = body.getJSONObject(i);
 			String name = obj.getString("name");
 			String id = obj.getString("id");
-			this.dataPools.add(new CelonisObject().new DataPool(name, id));
+			this.dataPools.add(new DataPool(name, id));
 		}
 
 	}
@@ -357,10 +357,10 @@ public class DataIntegration {
 					} else if (caseTableId.contains(idTable)) {
 						tableType = DataModelTableType.CASE;
 					}
-					tables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
-					this.dataModelTables.add(new CelonisObject().new DataModelTable(nameTable, idTable, id, tableType));
+					tables.add(new DataModelTable(nameTable, idTable, id, tableType));
+					this.dataModelTables.add(new DataModelTable(nameTable, idTable, id, tableType));
 				}
-				this.dataModels.add(new CelonisObject().new DataModel(name, id, dp, tables));
+				this.dataModels.add(new DataModel(name, id, dp, tables));
 			}
 		}
 

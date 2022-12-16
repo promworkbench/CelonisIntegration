@@ -3,7 +3,9 @@ package org.processmining.celonisintegration.parameters;
 import java.io.File;
 
 import org.processmining.basicutils.parameters.impl.PluginParametersImpl;
-
+import org.processmining.celonisintegration.objects.studio.Analysis;
+import org.processmining.celonisintegration.objects.studio.Package;
+import org.processmining.celonisintegration.objects.studio.Space;
 public class UploadEventLogParameter extends PluginParametersImpl {
 
 	private String url;
@@ -36,22 +38,49 @@ public class UploadEventLogParameter extends PluginParametersImpl {
 	private String caseColNew;
 	private String timeColNew;
 	private File actCSV;
+
+	private SpaceStatus spaceStatus;
+	private PackageStatus packageStatus;
+	private SAnalysisStatus sAnalysisStatus;
+	private String spaceNew;
+	private String packageNameNew;
+	private String packageKeyNew;
+	private String sAnalysisNew;
+	private Space spaceCombo;
+	private Package packageCombo;
+	private Analysis sAnalysis;
+
+	public enum SpaceStatus {
+		NEW, REPLACE, ADD, FORBIDDEN
+	}
+
+	public enum PackageStatus {
+		NEW, REPLACE, ADD
+	}
+
+	public enum SAnalysisStatus {
+		NEW
+	}
+
 	public enum TableStatus {
 		NEW, REPLACE
 	}
+
 	public enum DataPoolStatus {
 		NEW, REPLACE, ADD
 	}
+
 	public enum DataModelStatus {
 		NEW, REPLACE, ADD
 	}
+
 	public enum WorkspaceStatus {
 		NEW, REPLACE, ADD, FORBIDDEN
 	}
+
 	public enum AnalysisStatus {
 		NEW, REPLACE, ADD
 	}
-	
 
 	public UploadEventLogParameter(UploadEventLogParameter parameters) {
 		super(parameters);
@@ -93,8 +122,88 @@ public class UploadEventLogParameter extends PluginParametersImpl {
 		}
 		return false;
 	}
+
 	
-	
+	public SpaceStatus getSpaceStatus() {
+		return spaceStatus;
+	}
+
+	public PackageStatus getPackageStatus() {
+		return packageStatus;
+	}
+
+	public SAnalysisStatus getsAnalysisStatus() {
+		return sAnalysisStatus;
+	}
+
+	public String getSpaceNew() {
+		return spaceNew;
+	}
+
+	public String getPackageNameNew() {
+		return packageNameNew;
+	}
+
+	public String getPackageKeyNew() {
+		return packageKeyNew;
+	}
+
+	public String getsAnalysisNew() {
+		return sAnalysisNew;
+	}
+
+	public Space getSpaceCombo() {
+		return spaceCombo;
+	}
+
+	public Package getPackageCombo() {
+		return packageCombo;
+	}
+
+	public Analysis getsAnalysis() {
+		return sAnalysis;
+	}
+
+	public void setSpaceStatus(SpaceStatus spaceStatus) {
+		this.spaceStatus = spaceStatus;
+	}
+
+	public void setPackageStatus(PackageStatus packageStatus) {
+		this.packageStatus = packageStatus;
+	}
+
+	public void setsAnalysisStatus(SAnalysisStatus sAnalysisStatus) {
+		this.sAnalysisStatus = sAnalysisStatus;
+	}
+
+	public void setSpaceNew(String spaceNew) {
+		this.spaceNew = spaceNew;
+	}
+
+	public void setPackageNameNew(String packageNameNew) {
+		this.packageNameNew = packageNameNew;
+	}
+
+	public void setPackageKeyNew(String packageKeyNew) {
+		this.packageKeyNew = packageKeyNew;
+	}
+
+	public void setsAnalysisNew(String sAnalysisNew) {
+		this.sAnalysisNew = sAnalysisNew;
+	}
+
+	public void setSpaceCombo(Space spaceCombo) {
+		this.spaceCombo = spaceCombo;
+	}
+
+	public void setPackageCombo(Package packageCombo) {
+		this.packageCombo = packageCombo;
+	}
+
+	public void setsAnalysis(Analysis sAnalysis) {
+		this.sAnalysis = sAnalysis;
+	}
+
 	public String getTableNameAdd() {
 		return tableNameAdd;
 	}

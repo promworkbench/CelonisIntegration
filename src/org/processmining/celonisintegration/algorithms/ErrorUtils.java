@@ -1,9 +1,9 @@
 package org.processmining.celonisintegration.algorithms;
 
 import org.json.JSONObject;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModel;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataModelTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.DataPool;
+import org.processmining.celonisintegration.objects.dataintegration.DataModel;
+import org.processmining.celonisintegration.objects.dataintegration.DataModelTable;
+import org.processmining.celonisintegration.objects.dataintegration.DataPool;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.AnalysisStatus;
 import org.processmining.celonisintegration.parameters.UploadEventLogParameter.DataModelStatus;

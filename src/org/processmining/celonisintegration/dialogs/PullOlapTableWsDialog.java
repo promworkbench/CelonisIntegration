@@ -8,11 +8,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
-import org.processmining.celonisintegration.algorithms.CelonisObject.OLAPTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Sheet;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
 import org.processmining.celonisintegration.algorithms.ProcessAnalytics;
+import org.processmining.celonisintegration.objects.processanalytics.Analysis;
+import org.processmining.celonisintegration.objects.processanalytics.OLAPTable;
+import org.processmining.celonisintegration.objects.processanalytics.Sheet;
+import org.processmining.celonisintegration.objects.processanalytics.Workspace;
 import org.processmining.celonisintegration.parameters.PullOlapTableParameter;
 import org.processmining.contexts.uitopia.UIPluginContext;
 import org.processmining.framework.util.ui.widgets.ProMList;

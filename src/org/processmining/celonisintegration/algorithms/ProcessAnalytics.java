@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Analysis;
-import org.processmining.celonisintegration.algorithms.CelonisObject.OLAPTable;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Sheet;
-import org.processmining.celonisintegration.algorithms.CelonisObject.Workspace;
+import org.processmining.celonisintegration.objects.processanalytics.Analysis;
+import org.processmining.celonisintegration.objects.processanalytics.OLAPTable;
+import org.processmining.celonisintegration.objects.processanalytics.Sheet;
+import org.processmining.celonisintegration.objects.processanalytics.Workspace;
 import org.processmining.framework.plugin.PluginContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -89,7 +89,7 @@ public class ProcessAnalytics {
 			String name = ws.getString("name");
 			String id = ws.getString("id");
 			String dmId = ws.getString("dataModelId");
-			this.workspaces.add(new CelonisObject().new Workspace(name, id, dmId));
+			this.workspaces.add(new Workspace(name, id, dmId));
 		}
 	}
 
@@ -109,7 +109,7 @@ public class ProcessAnalytics {
 				if (ana.getString("parentObjectId").equals(ws.getId())) {
 					String name = ana.getString("name");
 					String id = ana.getString("id");
-					this.analyses.add(new CelonisObject().new Analysis(name, id, ws));
+					this.analyses.add(new Analysis(name, id, ws));
 					break;
 				}
 			}
@@ -135,7 +135,7 @@ public class ProcessAnalytics {
 				String name = sheetJson.getString("name");
 				String translatedName = translateName(name);
 				String id = sheetJson.getString("id");
-				Sheet sheet = new CelonisObject().new Sheet(name, translatedName, id, ana);
+				Sheet sheet = new Sheet(name, translatedName, id, ana);
 				this.sheets.add(sheet);
 				JSONArray components = new JSONArray(sheetJson.getJSONArray("components"));
 				for (int j = 0; j < components.length(); j++) {
@@ -145,7 +145,7 @@ public class ProcessAnalytics {
 							String tableName = comp.getString("title");
 							String translatedTableName = translateName(tableName);
 							String tableId = comp.getString("id");
-							this.tables.add(new CelonisObject().new OLAPTable(tableName, translatedTableName, tableId, sheet));
+							this.tables.add(new OLAPTable(tableName, translatedTableName, tableId, sheet));
 						}
 					}
 				}

@@ -496,8 +496,12 @@ public class UploadEventLogDialog extends JPanel {
 				studioTab.add(sAna, "0, 6");
 				studioTab.add(bSAnalysisNew, "1, 6");
 				studioTab.add(cardSAnalysisCont, "0, 7, 3, 7");
+				highlightButton(bSpaceAdd, new ArrayList<JButton>());
 				highlightButton(bPackageNew, new ArrayList<JButton>());
 				highlightButton(bSAnalysisNew, new ArrayList<JButton>());
+				layoutCardSpace.show(cardSpaceCont, "1");
+				bPackageSelect.setVisible(true);
+				bPackageAdd.setVisible(true);
 			}
 			// no studio permission
 			else {

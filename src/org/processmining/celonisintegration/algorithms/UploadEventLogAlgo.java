@@ -218,61 +218,89 @@ public class UploadEventLogAlgo {
 		actCSV.delete();
 		caseCSV.delete();
 
-		res = res + "The event log is uploaded to Celonis.";
-		if (!message.isEmpty()) {
-			res = res + "There is a warning: " + message;
-		}
 
 		/*---- Studio ----*/
 		Studio studio = new Studio(url, token);
+		String spaceName = "";
+		String packageName = "";
+		String sAnaName = "";
 		if (parameters.getSpaceStatus() == SpaceStatus.NEW) {
 			context.log("Creating new space " + parameters.getSpaceNew());
+			spaceName = parameters.getSpaceNew();
 			String spaceId = studio.createSpace(parameters.getSpaceNew());
 			context.log("Creating new package " + parameters.getPackageNameNew());
 			String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
 					spaceId);
+			packageName = parameters.getPackageNameNew();
 			context.log("Creating new analysis " + parameters.getsAnalysisNew());
 			studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
 					parameters.getPackageNameNew(), packageId, dataModelId);
+			sAnaName = parameters.getsAnalysisNew();
 		} else if (parameters.getSpaceStatus() == SpaceStatus.REPLACE) {
 			context.log("Deleting the space " + parameters.getSpaceCombo().getName());
 			studio.deleteSpace(parameters.getSpaceCombo().getId());
 			context.log("Creating a new space " + parameters.getSpaceCombo().getName());
+			spaceName = parameters.getSpaceCombo().getName();
 			String spaceId = studio.createSpace(parameters.getSpaceCombo().getName());
 			context.log("Creating new package " + parameters.getPackageNameNew());
+			packageName = parameters.getPackageNameNew();
 			String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
 					spaceId);
 			context.log("Creating new analysis " + parameters.getsAnalysisNew());
 			studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
 					parameters.getPackageNameNew(), packageId, dataModelId);
+			sAnaName = parameters.getsAnalysisNew();
 		} else if (parameters.getSpaceStatus() == SpaceStatus.ADD) {
 			String spaceId = parameters.getSpaceCombo().getId();
+			spaceName = parameters.getSpaceCombo().getName();
 			if (parameters.getPackageStatus() == PackageStatus.NEW) {
 				context.log("Creating new package " + parameters.getPackageNameNew());
 				String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
 						spaceId);
+				packageName = parameters.getPackageNameNew();
 				context.log("Creating new analysis " + parameters.getsAnalysisNew());
 				studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
 						parameters.getPackageNameNew(), packageId, dataModelId);
+				sAnaName = parameters.getsAnalysisNew();
 			} else if (parameters.getPackageStatus() == PackageStatus.REPLACE) {
 				context.log("Deleting the package " + parameters.getPackageNameNew());
 				studio.deletePackage(parameters.getPackageCombo().getId());
 				context.log("Creating new package " + parameters.getPackageCombo().getName());
 				String packageId = studio.createPackage(parameters.getPackageCombo().getKey(), parameters.getPackageCombo().getName(),
 						spaceId);
+				packageName =  parameters.getPackageCombo().getName();
 				context.log("Creating new analysis " + parameters.getsAnalysisNew());
 				studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
 						parameters.getPackageNameNew(), packageId, dataModelId);
+				sAnaName = parameters.getsAnalysisNew();
 			} else if (parameters.getPackageStatus() == PackageStatus.ADD) {
 				String packageId = parameters.getPackageCombo().getId();
+				packageName =  parameters.getPackageCombo().getName();
 				if (parameters.getsAnalysisStatus() == SAnalysisStatus.NEW) {
 					context.log("Creating new analysis " + parameters.getsAnalysisNew());
 					studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),
 							parameters.getPackageNameNew(), packageId, dataModelId);
+					sAnaName = parameters.getsAnalysisNew();
 				} 
 			}
 		}
 
+		res = res + "The event log is uploaded to Celonis.";
+		if (!message.isEmpty()) {
+			res = res + "There is a warning: " + message;
+		}
+		res += "Data Pool: " + dp + ". ";
+		res += "Data Model: " + dm + ". ";
+		res += "Table: " + tableName + ". ";
+		if (celonis.getPermissionProcessAnalytics()) {
+			res += "Workspace: " + ws + ". ";
+			res += "Analysis: " + ana + ". ";
+		}
+		if (parameters.getSpaceStatus() != SpaceStatus.FORBIDDEN) {
+			res += "Space: " + spaceName + ". ";
+			res += "Package: " + packageName + ". ";
+			res += "Analysis: " + sAnaName + ". ";
+		}
 		return res;
 	}
 

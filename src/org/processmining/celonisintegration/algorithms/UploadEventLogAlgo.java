@@ -285,7 +285,7 @@ public class UploadEventLogAlgo {
 			}
 		}
 
-		res = res + "The event log is uploaded to Celonis.";
+		res = res + "The event log is uploaded to Celonis. ";
 		if (!message.isEmpty()) {
 			res = res + "There is a warning: " + message;
 		}

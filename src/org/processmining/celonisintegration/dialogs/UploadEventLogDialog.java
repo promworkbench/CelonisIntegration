@@ -211,6 +211,10 @@ public class UploadEventLogDialog extends JPanel {
 		JLabel sPackageKey = new JLabel("Package key:");
 		JLabel sAna = new JLabel("Analysis name:");
 
+		/*---- default ----*/
+		parameters.setSpaceStatus(SpaceStatus.NEW);
+		parameters.setPackageStatus(PackageStatus.NEW);
+		parameters.setsAnalysisStatus(SAnalysisStatus.NEW);
 		/*---- event listener for buttons ----*/
 		// new space
 		bSpaceNew.addActionListener(new ActionListener() {
@@ -229,6 +233,7 @@ public class UploadEventLogDialog extends JPanel {
 				});
 				highlightButton(bSAnalysisNew, new ArrayList<JButton>());
 				parameters.setSpaceStatus(SpaceStatus.NEW);
+				parameters.setPackageStatus(PackageStatus.NEW);
 				bPackageSelect.setVisible(false);
 				bPackageAdd.setVisible(false);
 				layoutCardSpace.show(cardSpaceCont, "2");
@@ -256,6 +261,7 @@ public class UploadEventLogDialog extends JPanel {
 				});
 				highlightButton(bSAnalysisNew, new ArrayList<JButton>() );
 				parameters.setSpaceStatus(SpaceStatus.REPLACE);
+				parameters.setPackageStatus(PackageStatus.NEW);
 				bPackageSelect.setVisible(false);
 				bPackageAdd.setVisible(false);
 				layoutCardSpace.show(cardSpaceCont, "1");

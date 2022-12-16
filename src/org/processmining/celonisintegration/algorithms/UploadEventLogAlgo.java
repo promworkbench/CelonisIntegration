@@ -48,6 +48,9 @@ public class UploadEventLogAlgo {
 		String tableName = parameters.getTableName();
 		String ws = parameters.getWorkspace();
 		String ana = parameters.getAnalysis();
+		if (!celonis.getPermissionProcessAnalytics()) {
+			parameters.setWorkspaceStatus(WorkspaceStatus.FORBIDDEN);
+		}
 
 		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE
 				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {

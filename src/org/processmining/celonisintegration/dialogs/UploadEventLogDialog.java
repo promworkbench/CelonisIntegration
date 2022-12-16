@@ -502,6 +502,7 @@ public class UploadEventLogDialog extends JPanel {
 				layoutCardSpace.show(cardSpaceCont, "1");
 				bPackageSelect.setVisible(true);
 				bPackageAdd.setVisible(true);
+				parameters.setSpaceStatus(SpaceStatus.ADD);
 			}
 			// no studio permission
 			else {

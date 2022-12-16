@@ -257,8 +257,8 @@ public class UploadEventLogAlgo {
 			} else if (parameters.getPackageStatus() == PackageStatus.REPLACE) {
 				context.log("Deleting the package " + parameters.getPackageNameNew());
 				studio.deletePackage(parameters.getPackageCombo().getId());
-				context.log("Creating new package " + parameters.getPackageNameNew());
-				String packageId = studio.createPackage(parameters.getPackageKeyNew(), parameters.getPackageNameNew(),
+				context.log("Creating new package " + parameters.getPackageCombo().getName());
+				String packageId = studio.createPackage(parameters.getPackageCombo().getKey(), parameters.getPackageCombo().getName(),
 						spaceId);
 				context.log("Creating new analysis " + parameters.getsAnalysisNew());
 				studio.createAnalysis(parameters.getsAnalysisNew(), parameters.getsAnalysisNew(),

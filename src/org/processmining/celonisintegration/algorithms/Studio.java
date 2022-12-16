@@ -158,12 +158,13 @@ public class Studio {
 		APIUtils.deleteRequest(targetUrl, jobRequest, "Delete Package " + packageName);
 		for (Space space : this.listEditableSpaces) {
 			List<Package> listPackages = this.mapSpace.get(space);
+			List<Package> newListPackages = new ArrayList<>();
 			for (Package p : listPackages) {
-				if (p.getId().equals(packageId)) {
-					listPackages.remove(p);
-					this.mapSpace.replace(space, listPackages);
+				if (!p.getId().equals(packageId)) {
+					newListPackages.add(p);
 				}
 			}
+			this.mapSpace.replace(space, newListPackages);
 		}
 		HashMap<Package, List<Analysis>> newMap = new HashMap<>();
 		for (Package p : this.mapPackage.keySet()) {
@@ -172,6 +173,13 @@ public class Studio {
 			}
 		}
 		this.mapPackage = newMap;
+		List<Package> newListPackage = new ArrayList<>();
+		for (Package p: this.listPackage) {
+			if (!p.getId().equals(packageId)) {
+				newListPackage.add(p);
+			}
+		}
+		this.listPackage = newListPackage;
 	}
 
 	public String getPackageNameById(String packageId) {

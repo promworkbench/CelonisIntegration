@@ -213,8 +213,12 @@ public class UploadEventLogDialog extends JPanel {
 
 		/*---- default ----*/
 		parameters.setSpaceStatus(SpaceStatus.NEW);
+		parameters.setSpaceNew(spaceField.getText());
 		parameters.setPackageStatus(PackageStatus.NEW);
+		parameters.setPackageNameNew(packageField.getText());
+		parameters.setPackageKeyNew(packageKeyFieldEdit.getText());
 		parameters.setsAnalysisStatus(SAnalysisStatus.NEW);
+		parameters.setsAnalysisNew(sAnalysisField.getText());
 		/*---- event listener for buttons ----*/
 		// new space
 		bSpaceNew.addActionListener(new ActionListener() {
@@ -262,6 +266,7 @@ public class UploadEventLogDialog extends JPanel {
 				highlightButton(bSAnalysisNew, new ArrayList<JButton>() );
 				parameters.setSpaceStatus(SpaceStatus.REPLACE);
 				parameters.setPackageStatus(PackageStatus.NEW);
+				parameters.setSpaceCombo((Space) spaceCombo.getSelectedItem());
 				bPackageSelect.setVisible(false);
 				bPackageAdd.setVisible(false);
 				layoutCardSpace.show(cardSpaceCont, "1");
@@ -282,6 +287,7 @@ public class UploadEventLogDialog extends JPanel {
 					}
 				});
 				parameters.setSpaceStatus(SpaceStatus.ADD);
+				parameters.setSpaceCombo((Space) spaceCombo.getSelectedItem());
 				bPackageSelect.setVisible(true);
 				bPackageAdd.setVisible(true);
 				layoutCardSpace.show(cardSpaceCont, "1");
@@ -318,6 +324,7 @@ public class UploadEventLogDialog extends JPanel {
 				});
 				highlightButton(bSAnalysisNew, new ArrayList<JButton>());
 				parameters.setPackageStatus(PackageStatus.REPLACE);
+				parameters.setPackageCombo((Package) packageCombo.getSelectedItem());
 				layoutCardPackage.show(cardPackageCont, "1");
 				layoutCardPackageKey.show(cardPackageKeyCont, "1");
 				layoutCardSAnalysis.show(cardSAnalysisCont, "2");
@@ -335,6 +342,7 @@ public class UploadEventLogDialog extends JPanel {
 					}
 				});
 				parameters.setPackageStatus(PackageStatus.ADD);
+				parameters.setPackageCombo((Package) packageCombo.getSelectedItem());
 				layoutCardPackage.show(cardPackageCont, "1");
 				layoutCardPackageKey.show(cardPackageKeyCont, "1");
 			}
@@ -503,6 +511,7 @@ public class UploadEventLogDialog extends JPanel {
 				bPackageSelect.setVisible(true);
 				bPackageAdd.setVisible(true);
 				parameters.setSpaceStatus(SpaceStatus.ADD);
+				parameters.setSpaceCombo((Space) spaceCombo.getSelectedItem());
 			}
 			// no studio permission
 			else {

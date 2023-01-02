@@ -123,14 +123,13 @@ public class ErrorUtils {
 			}
 		}
 
-		if (parameters.getSpaceStatus() == SpaceStatus.NEW || parameters.getSpaceStatus() == SpaceStatus.REPLACE) {
+		if (parameters.getSpaceStatus() == SpaceStatus.NEW) {
 			if (parameters.getSpaceNew() == null) {
 				throw new UserException("Space name can not be empty");
 			}
 		}
 		if (parameters.getSpaceStatus() == SpaceStatus.ADD) {
-			if (parameters.getPackageStatus() == PackageStatus.NEW
-					|| parameters.getPackageStatus() == PackageStatus.REPLACE) {
+			if (parameters.getPackageStatus() == PackageStatus.NEW) {
 				if (parameters.getPackageNameNew() == null) {
 					throw new UserException("Package name can not be empty");
 				}
@@ -152,8 +151,7 @@ public class ErrorUtils {
 
 			}
 		}
-		if (parameters.getPackageStatus() == PackageStatus.NEW
-				|| parameters.getPackageStatus() == PackageStatus.REPLACE) {
+		if (parameters.getPackageStatus() == PackageStatus.NEW) {
 			if (parameters.getPackageNameNew() == null) {
 				throw new UserException("Package name can not be empty");
 			}
@@ -165,7 +163,12 @@ public class ErrorUtils {
 						"Analysis name " + parameters.getsAnalysisNew() + " can not be the same as the Package key.");
 			}
 		}
-
+		if (parameters.getPackageStatus() == PackageStatus.REPLACE) {
+			if (parameters.getsAnalysisNew().equals(parameters.getPackageCombo().getName())) {
+				throw new UserException(
+						"Analysis name " + parameters.getsAnalysisNew() + " can not be the same as the Package key.");
+			}
+		}
 		if (parameters.getPackageStatus() == PackageStatus.ADD) {
 			for (Package pack : studio.getMapPackage().keySet()) {
 				if (pack.getId().equals(parameters.getPackageCombo().getId())) {

@@ -103,26 +103,28 @@ public class ErrorUtils {
 				throw new UserException("Table name can not be empty");
 			}
 		}
-		if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE
-				|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
-			if (parameters.getWorkspaceReplace() == null) {
-				throw new UserException("Workspace name can not be empty");
+		if (dataIntegration.getPermissionProcessAnalytics()) {
+			if (parameters.getWorkspaceStatus() == WorkspaceStatus.REPLACE
+					|| parameters.getWorkspaceStatus() == WorkspaceStatus.ADD) {
+				if (parameters.getWorkspaceReplace() == null) {
+					throw new UserException("Workspace name can not be empty");
+				}
+			} else {
+				if (parameters.getWorkspace().replaceAll(" ", "").equals("")) {
+					throw new UserException("Workspace name can not be empty");
+				}
 			}
-		} else {
-			if (parameters.getWorkspace().replaceAll(" ", "").equals("")) {
-				throw new UserException("Workspace name can not be empty");
+			if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE) {
+				if (parameters.getAnalysisReplace() == null) {
+					throw new UserException("Analysis name can not be empty");
+				}
+			} else {
+				if (parameters.getAnalysis().replaceAll(" ", "").equals("")) {
+					throw new UserException("Analysis name can not be empty");
+				}
 			}
 		}
-		if (parameters.getAnalysisStatus() == AnalysisStatus.REPLACE) {
-			if (parameters.getAnalysisReplace() == null) {
-				throw new UserException("Analysis name can not be empty");
-			}
-		} else {
-			if (parameters.getAnalysis().replaceAll(" ", "").equals("")) {
-				throw new UserException("Analysis name can not be empty");
-			}
-		}
-
+		
 		if (parameters.getSpaceStatus() == SpaceStatus.NEW) {
 			if (parameters.getSpaceNew() == null) {
 				throw new UserException("Space name can not be empty");
@@ -157,6 +159,11 @@ public class ErrorUtils {
 			}
 			if (parameters.getPackageKeyNew() == null) {
 				throw new UserException("Package key can not be empty");
+			}
+			for (Package p : studio.getListPackage()) {
+				if (p.getKey().equals(parameters.getPackageKeyNew())) {
+					throw new UserException("A package with key " + parameters.getPackageKeyNew() + " already exists.");
+				}
 			}
 			if (parameters.getsAnalysisNew().equals(parameters.getPackageKeyNew())) {
 				throw new UserException(

@@ -289,17 +289,23 @@ public class UploadEventLogAlgo {
 		if (!message.isEmpty()) {
 			res = res + "There is a warning: " + message;
 		}
+		res += "Data Integration: {";
 		res += "Data Pool: " + dp + ". ";
 		res += "Data Model: " + dm + ". ";
 		res += "Table: " + tableName + ". ";
+		res += "}";
 		if (celonis.getPermissionProcessAnalytics()) {
+			res += "Process Analytics: {";
 			res += "Workspace: " + ws + ". ";
 			res += "Analysis: " + ana + ". ";
+			res += "}";
 		}
 		if (parameters.getSpaceStatus() != SpaceStatus.FORBIDDEN) {
+			res += "Studio: {";
 			res += "Space: " + spaceName + ". ";
 			res += "Package: " + packageName + ". ";
 			res += "Analysis: " + sAnaName + ". ";
+			res += "}";
 		}
 		return res;
 	}

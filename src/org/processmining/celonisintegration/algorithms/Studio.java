@@ -357,41 +357,6 @@ public class Studio {
 		return false;
 	}
 
-	public static void main(String[] args) throws UserException {
-		Studio s = new Studio("https://academic-hieu-le-rwth-aachen-de.eu-2.celonis.cloud/",
-				"MmQ3YWQyZGUtM2I5NC00ZjZlLWFlYzYtYzBhM2U3OTJkNjgyOndwbmhjS0RNdVdPZkJMNHUwQlNEVWJ6cXFyU3oxRHNoSW5Pb21MQjloTzhW");
-		//		String spaceId = s.createSpace("test-eclipse");
-		//		String packageId = s.createPackage("test-pack-eclipse", "test-pack-eclipse", spaceId);
-		//		String anaId = s.createAnalysis("test-ana-eclipse", "test-ana-eclipse", "test-pack-eclipse", packageId,
-		//				"ce6c7f38-c357-4218-918a-8c4a2a9141cd");
-
-		//		JFrame f = new JFrame("frame");
-		//		Space s1[] = { new Space("a", "12a"),new Space("b", "12b") };
-		//
-		//		// create checkbox
-		//		JComboBox c1 = new JComboBox(s1);
-		//		c1.addActionListener(new ActionListener() {
-		//			public void actionPerformed(ActionEvent e) {
-		//				Space s = (Space) c1.getSelectedItem();
-		//				System.out.println(s.getId());
-		//			}
-		//		});
-		//		JPanel p = new JPanel();
-		//		p.add(c1);
-		//		f.add(p);
-		//
-		//		// set the size of frame
-		//		f.setSize(400, 300);
-		//
-		//		f.show();
-
-		for (Space sp : s.getListEditableSpaces()) {
-			System.out.println(sp.getName());
-		}
-		System.out.println(s.isCanCreateSpace());
-		System.out.println(s.isCanReplaceSpace());
-	}
-
 	public boolean isCanCreateSpace() {
 		return canCreateSpace;
 	}

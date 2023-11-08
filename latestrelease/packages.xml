@@ -1,6 +1,6 @@
 
 					<packages>
-						<package name="CelonisIntegration" version="6.14.1" os="all" url="CelonisIntegration/CelonisIntegration-6.14.1-all.zip" desc="CelonisIntegration" org="RWTH Aachen" license="GPL" author="Hieu Le" auto="false" hasPlugins="true" logo="prom_subtitle_hat_300.png">
+						<package name="CelonisIntegration" version="6.14.2" os="all" url="CelonisIntegration/CelonisIntegration-6.14.2-all.zip" desc="CelonisIntegration" org="RWTH Aachen" license="GPL" author="Hieu Le" auto="false" hasPlugins="true" logo="prom_subtitle_hat_300.png">
 				    	<dependency org="prom" name="ProM-Plugins" rev="latest" changing="true" transitive="true" />
     	<dependency org="prom" name="BasicUtils" rev="latest" changing="true" transitive="true" />
     	<dependency org="prom" name="Widgets" rev="latest" changing="true" transitive="true" />
